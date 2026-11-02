@@ -1,0 +1,39 @@
+name: collect
+
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt
+
+      - name: Download earlier snapshots
+        run: |
+          gh release view data > /dev/null 2>&1 || \
+            gh release create data --title "Raw data" --notes "Daily raw files written by the collector."
+          mkdir -p data/raw
+          gh release download data --dir data/raw --pattern "snapshot_*.jsonl" || true
+
+      - name: Collect
+        run: python -m first48.collect --out data/raw | tee written.txt
+
+      - name: Upload new files
+        if: always()
+        run: |
+          if [ -s written.txt ]; then
+            xargs gh release upload data < written.txt
+          fi
