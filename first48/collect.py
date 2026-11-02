@@ -10,8 +10,10 @@ snapshot by one extra day. Snapshots only reflect day-1 state when the run
 happens on schedule; a late run records a later state.
 
 Each file written is printed on its own line so the caller can upload it.
+With --summary, one row per run is appended to a CSV file.
 """
 import argparse
+import csv
 import datetime as dt
 import json
 import sys
@@ -39,6 +41,7 @@ def write_jsonl(path, rows):
         for row in rows:
             f.write(json.dumps(row) + "\n")
     print(path, flush=True)
+    return len(rows)
 
 
 def read_jsonl(path):
@@ -51,14 +54,15 @@ def take_snapshot(cohort, out, session):
     fetched_at = now_utc()
     for page in new_pages:
         page["fetched_at"] = fetched_at
-    write_jsonl(out / f"new_pages_{cohort}.jsonl", new_pages)
+    n_new = write_jsonl(out / f"new_pages_{cohort}.jsonl", new_pages)
 
     states = snapshot_pages([p["page_id"] for p in new_pages], session)
     items = [s["wikidata_item"] for s in states if s["wikidata_item"]]
     types = fetch_instance_of(items, session)
     for state in states:
         state["instance_of"] = types.get(state["wikidata_item"], [])
-    write_jsonl(out / f"snapshot_{cohort}.jsonl", states)
+    n_snapshots = write_jsonl(out / f"snapshot_{cohort}.jsonl", states)
+    return n_new, n_snapshots
 
 
 def is_article(state):
@@ -71,7 +75,7 @@ def fetch_views(cohort, n_days, kind, out, session):
     snapshot = out / f"snapshot_{cohort}.jsonl"
     if not snapshot.exists():
         print(f"no snapshot for {cohort}, skipping {kind} views", file=sys.stderr)
-        return
+        return 0
 
     articles = [s for s in read_jsonl(snapshot) if is_article(s)]
     end = cohort + dt.timedelta(days=n_days - 1)
@@ -84,7 +88,16 @@ def fetch_views(cohort, n_days, kind, out, session):
             "fetched_at": now_utc(),
             "views": views,
         })
-    write_jsonl(out / f"views_{kind}_{cohort}.jsonl", rows)
+    return write_jsonl(out / f"views_{kind}_{cohort}.jsonl", rows)
+
+
+def append_summary(path, row):
+    new_file = not path.exists()
+    with open(path, "a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=list(row))
+        if new_file:
+            writer.writeheader()
+        writer.writerow(row)
 
 
 def main():
@@ -93,14 +106,25 @@ def main():
     parser.add_argument("--date", type=dt.date.fromisoformat,
                         default=dt.datetime.now(dt.timezone.utc).date(),
                         help="run date in UTC, defaults to today")
+    parser.add_argument("--summary", type=Path, help="CSV file to append a run summary to")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
 
     session = make_session()
     run = args.date
-    take_snapshot(run - dt.timedelta(days=SNAPSHOT_LAG), args.out, session)
-    fetch_views(run - dt.timedelta(days=EARLY_LAG), 2, "early", args.out, session)
-    fetch_views(run - dt.timedelta(days=FULL_LAG), 30, "full", args.out, session)
+    n_new, n_snapshots = take_snapshot(run - dt.timedelta(days=SNAPSHOT_LAG), args.out, session)
+    n_early = fetch_views(run - dt.timedelta(days=EARLY_LAG), 2, "early", args.out, session)
+    n_full = fetch_views(run - dt.timedelta(days=FULL_LAG), 30, "full", args.out, session)
+
+    if args.summary:
+        append_summary(args.summary, {
+            "run_date": run.isoformat(),
+            "finished_at": now_utc(),
+            "new_pages": n_new,
+            "snapshots": n_snapshots,
+            "early_view_rows": n_early,
+            "full_view_rows": n_full,
+        })
 
 
 if __name__ == "__main__":
