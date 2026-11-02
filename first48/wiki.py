@@ -1,12 +1,19 @@
 import datetime as dt
 import sys
 import time
+from urllib.parse import quote
 
 import requests
 
 API = "https://en.wikipedia.org/w/api.php"
 WIKIDATA_API = "https://www.wikidata.org/w/api.php"
-USER_AGENT = "first48/0.1 (https://github.com/pranjalts07/first48)"
+PAGEVIEWS = "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user"
+USER_AGENT = f"first48/0.1 (https://github.com/pranjalts07/first48) requests/{requests.__version__}"
+
+# Wikimedia allows identified bots about 200 requests a minute. Staying
+# under 3 a second leaves some room.
+MIN_INTERVAL = 0.35
+_last_request = 0.0
 
 
 def make_session():
@@ -15,11 +22,21 @@ def make_session():
     return session
 
 
-def get_json(session, url, params, tries=5):
+def wait_turn():
+    global _last_request
+    pause = _last_request + MIN_INTERVAL - time.monotonic()
+    if pause > 0:
+        time.sleep(pause)
+    _last_request = time.monotonic()
+
+
+def get_json(session, url, params, tries=6):
     for attempt in range(tries):
+        wait_turn()
         resp = session.get(url, params=params, timeout=30)
         if resp.status_code == 429 or resp.status_code >= 500:
-            time.sleep(2 ** attempt)
+            retry_after = resp.headers.get("Retry-After", "")
+            time.sleep(int(retry_after) if retry_after.isdigit() else max(5, 2 ** attempt))
             continue
         resp.raise_for_status()
         return resp.json()
@@ -95,6 +112,7 @@ def page_state(page, taken_at):
         "page_id": page["pageid"],
         "taken_at": taken_at,
         "exists": not page.get("missing", False),
+        "namespace": page.get("ns"),
         "is_redirect": page.get("redirect", False),
         "title": page.get("title"),
         "last_rev_id": page.get("lastrevid"),
@@ -139,6 +157,29 @@ def fetch_instance_of(items, session=None):
         for item, entity in data.get("entities", {}).items():
             result[item] = instance_of(entity)
     return result
+
+
+def fetch_daily_views(title, start, end, session=None):
+    """Daily user views for a title between two dates, inclusive, as {"2026-09-01": 29, ...}.
+
+    The API leaves out some days with no views, so a missing day means zero
+    views once the page exists.
+    """
+    session = session or make_session()
+    article = quote(title.replace(" ", "_"), safe="")
+    url = f"{PAGEVIEWS}/{article}/daily/{start:%Y%m%d}00/{end:%Y%m%d}00"
+    try:
+        data = get_json(session, url, params=None)
+    except requests.HTTPError as err:
+        # The API answers 404 when a title has no views at all in the range.
+        if err.response is not None and err.response.status_code == 404:
+            return {}
+        raise
+    return {iso_day(item["timestamp"]): item["views"] for item in data["items"]}
+
+
+def iso_day(timestamp):
+    return f"{timestamp[:4]}-{timestamp[4:6]}-{timestamp[6:8]}"
 
 
 if __name__ == "__main__":
