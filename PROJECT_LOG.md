@@ -63,5 +63,7 @@ Dead ends
 Results (test run, not the live schedule)
 - Simulated runs for 2026-10-03, 11-01 and 11-02 wrote: 1,447 snapshots for the Oct 31 cohort, early views for 595 pages of the Oct 30 cohort, and 30-day views for 550 pages of the Oct 1 cohort. The early and 30-day counts came from before the draft filter fix.
 
+- Collector merged to main and live. First run triggered by hand on 2026-11-02: snapshot of the Oct 31 cohort uploaded to the `data` release. Scheduled runs at 09:00 UTC from 2026-11-03. Early views start with the Nov 4 run, 30-day views with the Dec 3 run.
+
 Next step
-- Merge, then trigger the first scheduled run. Backfill (#7) and DuckDB staging models after that.
+- Backfill historical cohorts (#7), then load raw files into DuckDB with staging models.
