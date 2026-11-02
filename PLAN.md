@@ -53,6 +53,20 @@ Mixed-effects model: log Y ~ log(day 0 + day 1 views) + creation hour + weekday 
 - Any correlation or summary statistic comes with a bootstrap confidence interval and is checked across several creation days, including weekdays and weekends.
 - Every number in RESULTS.md comes with the command that reproduces it.
 
+## Amendment 1 (2026-11-01, before any modeling)
+Reason: early views alone answer "how big will this be", but not "how much do early views add over what we could know at creation". That second question is the cold-start question platforms actually face, and Shulman, Sharma & Cosley (2016) suggest early timing signals can dominate prediction without explaining it.
+
+Added question: how much do the first two days of views add beyond content known at creation?
+- (a) Content-only: text embedding of the article's opening text plus article type, from the revision current at the end of day 0. No view data.
+- (b) Early-signal: the plan-v1 model.
+- (c) Combined: (a) and (b) features together, content from the revision at the end of day 1.
+- Same metrics, splits, seeds and final holdout as plan-v1. The added value of early views is the difference in median absolute log error between (c) and (a), with a paired bootstrap 95% interval.
+- Embeddings come from a small open-source model run locally. The model name and version are fixed before the first fold is scored.
+
+Leakage rule: content features use only the revision that existed at the end of day 0 (for a) or day 1 (for c), looked up by timestamp. Never the current text.
+
+Out of scope until the core is done: repeating the analysis on new GitHub repositories (GH Archive) to test whether the result generalizes.
+
 ## Known threats
 - Survivorship in backfilled data: status (deleted, redirected) is checked after the fact. The live collector records status at the end of day 1; the size of the bias is estimated by comparing the two.
 - Leakage: no feature may use information after the end of day 1. Training labels respect the 30-day lag above.
