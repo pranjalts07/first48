@@ -1,0 +1,52 @@
+name: backfill
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: First cohort day (YYYY-MM-DD)
+        required: true
+      end:
+        description: Last cohort day (YYYY-MM-DD)
+        required: true
+
+permissions:
+  contents: write
+
+# Shares the group with the daily run so the two never hit the API at once.
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      GH_TOKEN: ${{ github.token }}
+      START: ${{ inputs.start }}
+      END: ${{ inputs.end }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt
+
+      - name: Download finished cohorts
+        run: |
+          gh release view backfill > /dev/null 2>&1 || \
+            gh release create backfill --title "Backfill" \
+              --notes "Past cohorts collected after the fact. Page state is as of collection time, not day 1."
+          mkdir -p data/backfill
+          gh release download backfill --dir data/backfill --pattern "views_full_*.jsonl" || true
+
+      - name: Backfill
+        run: python -m first48.backfill "$START" "$END" --out data/backfill | tee written.txt
+
+      - name: Upload new files
+        if: always()
+        run: |
+          if [ -s written.txt ]; then
+            xargs gh release upload backfill --clobber < written.txt
+          fi
