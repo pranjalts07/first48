@@ -5,6 +5,7 @@ import time
 import requests
 
 API = "https://en.wikipedia.org/w/api.php"
+WIKIDATA_API = "https://www.wikidata.org/w/api.php"
 USER_AGENT = "first48/0.1 (https://github.com/pranjalts07/first48)"
 
 
@@ -82,6 +83,62 @@ def fetch_new_articles(day, session=None):
         if "logpage" in event and is_promotion(event):
             records.append(to_record(event, event["params"]["target_title"], "move"))
     return records
+
+
+def chunks(items, size=50):
+    for i in range(0, len(items), size):
+        yield items[i:i + size]
+
+
+def page_state(page, taken_at):
+    return {
+        "page_id": page["pageid"],
+        "taken_at": taken_at,
+        "exists": not page.get("missing", False),
+        "is_redirect": page.get("redirect", False),
+        "title": page.get("title"),
+        "last_rev_id": page.get("lastrevid"),
+        "wikidata_item": page.get("pageprops", {}).get("wikibase_item"),
+    }
+
+
+def snapshot_pages(page_ids, session=None):
+    """State of each page right now: exists, redirect, title, latest revision, Wikidata item."""
+    session = session or make_session()
+    taken_at = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    # The same page can enter article space twice in a day (moved back to
+    # draft and promoted again), so ask about each id once.
+    unique_ids = list(dict.fromkeys(page_ids))
+    rows = []
+    for batch in chunks(unique_ids):
+        params = {
+            "action": "query",
+            "prop": "info|pageprops",
+            "ppprop": "wikibase_item",
+            "pageids": "|".join(str(p) for p in batch),
+            "format": "json",
+            "formatversion": 2,
+        }
+        data = get_json(session, API, params)
+        rows.extend(page_state(page, taken_at) for page in data["query"]["pages"])
+    return rows
+
+
+def instance_of(entity):
+    claims = entity.get("claims", {}).get("P31", [])
+    return [c["mainsnak"]["datavalue"]["value"]["id"] for c in claims if "datavalue" in c["mainsnak"]]
+
+
+def fetch_instance_of(items, session=None):
+    """Wikidata "instance of" values for each item, e.g. {"Q937": ["Q5"]}."""
+    session = session or make_session()
+    result = {}
+    for batch in chunks(sorted(set(items))):
+        params = {"action": "wbgetentities", "ids": "|".join(batch), "props": "claims", "format": "json"}
+        data = get_json(session, WIKIDATA_API, params)
+        for item, entity in data.get("entities", {}).items():
+            result[item] = instance_of(entity)
+    return result
 
 
 if __name__ == "__main__":
