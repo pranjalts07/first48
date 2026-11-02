@@ -1,6 +1,6 @@
 # Pinto, Almeida & Goncalves (2013): Using Early View Patterns to Predict the Popularity of YouTube Videos
 
-Citation: H. Pinto, J. M. Almeida and M. A. Goncalves, WSDM 2013 (page numbers not yet confirmed). DOI 10.1145/2433396.2433443.
+Citation: H. Pinto, J. M. Almeida and M. A. Goncalves, WSDM 2013, pages 365-374. DOI 10.1145/2433396.2433443 (confirmed on Crossref).
 Status: bibliographic details confirmed. The model forms below follow the restatement in Trzcinski & Rokita (arXiv:1510.06223); the original full text is still to be read.
 
 ## The idea

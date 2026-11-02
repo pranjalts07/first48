@@ -1,7 +1,7 @@
 # Szabo & Huberman (2010): Predicting the Popularity of Online Content
 
-Citation: G. Szabo and B. A. Huberman, "Predicting the Popularity of Online Content", Communications of the ACM 53(8), 2010. Preprint: arXiv:0811.0405 (Nov 2008).
-Checked against the arXiv full text on 2026-11-01. Journal volume and issue still to confirm on the ACM page.
+Citation: G. Szabo and B. A. Huberman, "Predicting the Popularity of Online Content", Communications of the ACM 53(8):80-88, 2010. DOI 10.1145/1787234.1787254. Preprint: arXiv:0811.0405 (Nov 2008).
+Notes checked against the arXiv full text. Volume, issue and pages confirmed on Crossref.
 
 ## Problem
 Predict an item's popularity at a later reference time t_r (30 days) from its popularity at an early indicator time t_i.
