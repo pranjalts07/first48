@@ -19,7 +19,11 @@ Decisions and why
 - Seasonal naive and ETS need more than two days of history, so the baselines are flat rate and Szabo-Huberman.
 - A quick one-day sample of 200 articles suggested a log-scale correlation around 0.76 between early and 30-day views. Not reported anywhere until it is reproduced by the pipeline with a bootstrap interval and checked across several days, weekdays and weekends.
 
+Later
+- Confirmed citation details on Crossref (#2). CQR is NeurIPS 2019.
+- Read the 2017 Kaggle winner's write-up (#3). Main takeaways: log1p scale, simple lag features beat their fancy attention, random splits were useless for them, average over seeds.
+- Finalized PLAN.md (#5): worked example of the 30-day label lag, at least 6 rolling origins, 5 seeds per comparison, article types from Wikidata, and the mixed-effects timing model.
+- Tasks now tracked in GitHub issues.
+
 Next step
-- Read the original Pinto et al. paper and fill in the unverified claims.
-- Study the 2017 Kaggle Web Traffic winner and write up why it won.
-- Finalize PLAN.md, then start Phase 1 (collector and backfill).
+- Phase 1: daily collector (#6) and backfill (#7). Collector first, because recording status at day 1 needs real calendar time.
