@@ -24,7 +24,7 @@ Later the same day
 
 More decisions
 - Primary metric is median absolute log error, not MAPE, because the target is heavy-tailed and MAPE treats over- and underprediction unequally.
-- Seasonal naive and ETS do not apply to a series that is two days long. Replaced by a flat-rate baseline.
+- Seasonal naive and ETS do not apply to a series that is two days long. Replaced by a flat-rate baseline. The accuracy target is now: beat Szabo-Huberman and flat rate.
 - The 0.76 correlation from the one-day probe will only be reported with a bootstrap interval and after checking several days, weekdays and weekends.
 
 Next step

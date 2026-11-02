@@ -26,7 +26,7 @@ From a new English Wikipedia article's first two days of views, predict its tota
 - Flag: precision and recall for "top 5% of Y within the creation week", plus precision-recall AUC.
 
 ## Baselines
-1. Flat rate: Y = views on days 0 and 1 + 28 x day-1 views.
+1. Flat rate: Y = views on days 0 and 1 + 28 x day-1 views. Used instead of seasonal naive and ETS, which need more history than two days.
 2. Szabo-Huberman: log Y = log(views on days 0 and 1) + b, slope fixed at 1, with the variance correction when converting back.
 3. Flag baseline: rank articles by day-0 plus day-1 views and flag the top 5%.
 
@@ -36,7 +36,7 @@ From a new English Wikipedia article's first two days of views, predict its tota
 - Conformal adjustment of the quantile model (conformalized quantile regression) using a calibration set of earlier cohorts.
 
 ## Success criteria
-- Point: LightGBM has lower median absolute log error than the Szabo-Huberman baseline in most rolling folds, and the paired bootstrap 95% interval for the difference on the final holdout excludes zero. Reported overall and per article type.
+- Point: LightGBM has lower median absolute log error than both the flat-rate and Szabo-Huberman baselines in most rolling folds, and the paired bootstrap 95% interval for the difference on the final holdout excludes zero. Reported overall and per article type.
 - Intervals: 80% intervals cover between 77% and 83% of final holdout articles.
 - Flag: higher precision at equal recall than the flag baseline on the final holdout.
 - Missing any of these gets reported as-is.
