@@ -25,5 +25,23 @@ Later
 - Finalized PLAN.md (#5): worked example of the 30-day label lag, at least 6 rolling origins, 5 seeds per comparison, article types from Wikidata, and the mixed-effects timing model.
 - Tasks now tracked in GitHub issues.
 
+- Tagged the plan as plan-v1.
+- Amendment 1 to the plan: compare a content-only model (text at creation) against the early-signal and combined models, to measure what the first two days add. Reason and leakage rule are in PLAN.md. README now framed as cold-start demand forecasting.
+
+## 2026-11-02
+
+What I did
+- `first48/wiki.py`: `fetch_new_articles(day)` pulls one UTC day of page creations in article space and moves into article space (drafts promoted to articles) from the MediaWiki logs. Retries with backoff on 429 and 5xx.
+- Tests for the move filter and page id handling.
+
+Decisions and why
+- Page id comes from `logpage`, not `pageid`. For a move, `pageid` refers to whatever now sits at the old title (usually a redirect). Spot-checked 8 moved pages: all `logpage` ids resolve to the moved article.
+- Moves within article space are renames, not new articles, so they are dropped.
+- The day window ends one second before midnight so an event at exactly 00:00:00 is not counted in two days.
+- Redirects are kept at this step and filtered in the snapshot step, so the raw data shows what the log actually contained.
+
+Results
+- `python -m first48.wiki 2026-09-01` gives 2242 created and 136 moved in, the same counts as the first API probe.
+
 Next step
-- Phase 1: daily collector (#6) and backfill (#7). Collector first, because recording status at day 1 needs real calendar time.
+- Day-1 snapshot: for each new page, record whether it exists, is a redirect, its Wikidata item and the current revision id (#6, #10).
