@@ -20,7 +20,7 @@ From a new English Wikipedia article's first two days of views, predict its tota
 
 ## Metrics
 - Primary: median absolute log error, |log(prediction / Y)|. It reads as "typically off by a factor of x" and is not dominated by a few huge articles.
-- Secondary: mean absolute log error; SMAPE (comparable with the 2017 Kaggle competition); absolute error in raw views, summed over a cohort (what a caching or staffing decision feels).
+- Secondary: mean absolute log error; SMAPE (comparable with the 2017 Kaggle competition); absolute error in raw views, summed over a cohort (the quantity a caching or staffing decision depends on).
 - MAPE is reported but not used to pick models: it punishes overprediction more than underprediction and is unstable for small counts.
 - Intervals: empirical coverage of the 80% interval, mean interval width on the log scale, and pinball loss at the 0.1, 0.5 and 0.9 quantiles. Coverage is also reported within bins of day-1 views, since overall coverage can hide undercoverage for large articles.
 - Flag: precision and recall for "top 5% of Y within the creation week", plus precision-recall AUC.
@@ -39,7 +39,7 @@ From a new English Wikipedia article's first two days of views, predict its tota
 - Point: LightGBM has lower median absolute log error than both the flat-rate and Szabo-Huberman baselines in most rolling folds, and the paired bootstrap 95% interval for the difference on the final holdout excludes zero. Reported overall and per article type.
 - Intervals: 80% intervals cover between 77% and 83% of final holdout articles.
 - Flag: higher precision at equal recall than the flag baseline on the final holdout.
-- Missing any of these gets reported as-is.
+- If a criterion is missed, the result is reported as is.
 
 ## Reporting rules
 - Any correlation or summary statistic comes with a bootstrap confidence interval and is checked across several creation days, including weekdays and weekends.

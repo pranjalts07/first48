@@ -1,20 +1,23 @@
 # first48
 
-From an article's first 48 hours of Wikipedia pageviews, can we predict its 30-day views with honest uncertainty, and flag likely high-demand articles early?
+Can a new Wikipedia article's first two days of views predict its 30-day views, with honest uncertainty, and flag likely high-demand articles early?
 
-Status: Phase 0 (research and pre-analysis plan). No data or results yet.
+Content teams plan promotion, caching and staffing around expected demand. This project builds that forecast on open data: daily pageviews for every new English Wikipedia article.
 
-## Data
+Status: research and planning. No results yet.
 
-Daily article pageviews from the Wikimedia pageviews REST API.
+## Approach
 
-## Plan
+- Data: Wikimedia pageviews API plus the MediaWiki creation and move logs (notes/02_data_source.md)
+- Baselines: flat-rate extrapolation and the Szabo-Huberman log-linear model
+- Models: LightGBM with early-view features, validated with rolling-origin backtests
+- Uncertainty: quantile regression with conformal calibration, coverage measured on held-out articles
+- Decision: a flag, raised after the first two days, for likely top-5% articles, with precision and recall against a simple rule
 
-0. Research and a pre-analysis plan written before any modeling
-1. Daily data pipeline into DuckDB with SQL models and data tests
-2. Baselines and models with rolling-origin backtests
-3. Quantile and conformal prediction intervals with measured coverage
-4. Early flag for likely top-5% articles and a Streamlit dashboard
-5. Write-up of results vs baselines
+The analysis plan, metrics and success criteria are fixed in advance in PLAN.md.
 
-See `PROJECT_LOG.md` for progress and decisions.
+## Repo
+
+- `PLAN.md`: pre-analysis plan
+- `notes/`: paper notes and data source notes
+- `PROJECT_LOG.md`: progress and decisions

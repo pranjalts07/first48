@@ -31,4 +31,4 @@ log N(t_r) is close to linear in log N(t_i) with slope 1.
 - Slower-decaying content (YouTube) needs a much longer indicator window.
 
 ## How we use it
-Baseline: log-linear model fitted on day-2 cumulative views to predict day-30 cumulative views.
+Baseline: log-linear model with slope 1, using total views over days 0 and 1 to predict total views over days 0 to 29.
