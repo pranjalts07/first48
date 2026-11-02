@@ -1,5 +1,9 @@
 # first48
 
+Predicts how many people will read a brand-new Wikipedia article in its first month, using only what is known in its first two days. Each forecast comes with a likely range, and articles likely to become top performers are flagged early, all tested on real public data against a published forecasting method.
+
+## Details
+
 Cold-start demand forecasting: how well can we predict demand for brand new content, and how much do the first two days of traffic add beyond what we know at launch?
 
 Content teams plan promotion, caching and staffing around expected demand, often before there is any history. New English Wikipedia articles are the open testbed: every one has a public creation time, public text and public daily pageviews.
