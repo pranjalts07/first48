@@ -43,5 +43,25 @@ Decisions and why
 Results
 - `python -m first48.wiki 2026-09-01` gives 2242 created and 136 moved in, the same counts as the first API probe.
 
+Later
+- `snapshot_pages`: for each new page, whether it still exists, is a redirect, its current title, latest revision id and Wikidata item. `fetch_instance_of` adds the Wikidata "instance of" values.
+- `fetch_daily_views` and `first48/collect.py`: the daily run. For run date R it snapshots the R-2 cohort, fetches day 0 and 1 views for R-3, and day 0 to 29 views for R-32. Output is one JSONL file per cohort and kind.
+- `.github/workflows/collect.yml`: runs every day at 09:00 UTC, reads earlier snapshots from the `data` release and uploads the new files there.
+
+Decisions and why
+- Two view fetches per article (after day 1 and after day 29) instead of polling every day: about 1,100 requests a day instead of about 18,000.
+- View fetches lag the snapshot by a day because pageviews are published the day after.
+- Raw files go to a GitHub release, not a branch, so the repo history stays code only.
+- The snapshot is written and uploaded before any view fetch, so a failure later in the run cannot lose it.
+- The same page can enter article space twice in one day (moved back to draft, then promoted again). Raw records keep both; the snapshot asks about each page once. Which entry counts as t0 is a staging decision.
+
+Dead ends
+- First full test run failed with 429 Too Many Requests partway through the first batch of pageview calls. Wikimedia allows identified bots about 200 requests a minute. Fixed by spacing requests at least 0.35 s apart, honoring Retry-After, and adding the library to the User-Agent as their policy asks. The paced run took about 7 minutes.
+- In the test run, pages that had been moved back to draft (and 2 that became templates) still counted as articles because they existed and were not redirects. On the Oct 31 cohort that was 23 of 537. The article filter now also requires the page to be in article space at snapshot time.
+- Assumed missing days in the pageviews response meant "before the page existed". Wrong: in the Oct 1 cohort, 324 of 550 articles had days missing in the middle of the window. The API leaves out some zero-view days, so staging treats a missing day as zero.
+
+Results (test run, not the live schedule)
+- Simulated runs for 2026-10-03, 11-01 and 11-02 wrote: 1,447 snapshots for the Oct 31 cohort, early views for 595 pages of the Oct 30 cohort, and 30-day views for 550 pages of the Oct 1 cohort. The early and 30-day counts came from before the draft filter fix.
+
 Next step
-- Day-1 snapshot: for each new page, record whether it exists, is a redirect, its Wikidata item and the current revision id (#6, #10).
+- Merge, then trigger the first scheduled run. Backfill (#7) and DuckDB staging models after that.
