@@ -65,5 +65,26 @@ Results (test run, not the live schedule)
 
 - Collector merged to main and live. First run triggered by hand on 2026-11-02: snapshot of the Oct 31 cohort uploaded to the `data` release. Scheduled runs at 09:00 UTC from 2026-11-03. Early views start with the Nov 4 run, 30-day views with the Dec 3 run.
 
+Later
+- Collector writes a one-row summary per run (`collector_runs.csv`) and commits it to main. GitHub disables scheduled workflows in public repos after 60 days without repository activity, and release uploads may not count. The docs don't define activity; a commit to the default branch is the safest signal.
+- Planned monthly compaction of release assets (#18). Releases allow 1,000 assets, each under 2 GiB. Daily files would fill the data release in about 8 months.
+- `first48/backfill.py` and a manual `backfill` workflow: collect past cohorts one month per run, into a separate `backfill` release.
+- Data checks (`first48/checks.py`) run on every daily collection: page counts in a sane range, one snapshot per new page, required fields present, article share between 10% and 80%, view rows match articles, no negative views, no dates outside the window. Any failure exits non-zero after files are written, so the workflow fails and GitHub sends a failure email, but the raw files still upload.
+- DESIGN_DOC.md: one-page design doc (problem, users, decision, metrics, guardrails, launch criteria, monitoring, risks).
+- Amendment 2 to the plan: current-practice baseline for the flag (rank by day-1 views), MLflow tracking for backtests, shadow mode for the live system, drift monitoring with an alert issue, and a proposed (not run) online experiment.
+
+More decisions
+- Backfilled and live data are kept in separate releases. Backfilled snapshots show page state at collection time, not after day 1, so they must never be mixed up with live snapshots.
+- Backfill fetches only the 30-day views; days 0 and 1 are part of them.
+- Backfill cohorts: 2026-01-01 to 2026-09-30. Every cohort has its full 30 days, and the range ends before the live collector starts, so there is no overlap.
+- The backfill skips cohorts that already have a views file, so a run that times out can be restarted.
+- The backfill and the daily run share a concurrency group so they never call the API at the same time.
+- About 3 files per cohort day means 9 months is about 820 assets, close to the 1,000 limit. Compaction (#18) applies to the backfill release too.
+- The current-practice flag baseline replaces "rank by day 0 plus day 1", which was nearly the same rule. For the point forecast, flat rate already is current practice, so no extra baseline was added.
+
+Results
+- Backfill test for the 2026-09-01 cohort: 2,378 new pages (2,242 created plus 136 moved in, matching the earlier counts), 570 articles with 30-day views, 3 min 50 s. A rerun skipped the finished cohort. At this speed one month takes about 2 hours.
+- Daily run with checks, simulated for 2026-11-03: 1,694 new pages, 1,693 snapshots, early views for 514 articles. All checks passed.
+
 Next step
-- Backfill historical cohorts (#7), then load raw files into DuckDB with staging models.
+- Run the backfill month by month, then load raw files into DuckDB with staging models.
