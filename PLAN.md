@@ -1,6 +1,6 @@
 # Pre-analysis plan
 
-Status: draft, 2026-11-01. Fixed before any modeling. Changes after modeling starts get logged in PROJECT_LOG.md with the reason.
+Status: fixed on 2026-11-01, before any modeling. Changes after modeling starts get logged in PROJECT_LOG.md with the reason.
 
 ## Question
 From a new English Wikipedia article's first two days of views, predict its total views over its first 30 days, with an 80% prediction interval, and flag likely top-5% articles by the end of day 1.
@@ -14,8 +14,10 @@ From a new English Wikipedia article's first two days of views, predict its tota
 
 ## Splits
 - Cohorts are defined by creation date.
-- A label is only known 30 days after creation. At a forecast origin T, training may use only articles created on or before T minus 30 days.
-- Rolling origin: one origin per month; test set is the articles created in the 7 days after T.
+- A label is only known 30 days after creation. At a forecast origin T, training may use only articles created on or before T minus 30 days. Example: for T = Oct 10, an article created Oct 5 has no label until Nov 3, so it can't be used; training stops at Sep 10.
+- Rolling origin: one origin per month, at least 6 origins; test set is the articles created in the 7 days after T.
+- Anything computed across articles (scalers, the top-5% cutoff, encodings) is fit on the training cohorts of that fold only.
+- Model comparisons average over 5 random seeds.
 - The most recent 6 weeks of complete cohorts are a final holdout, used once at the end.
 
 ## Metrics
@@ -35,6 +37,12 @@ From a new English Wikipedia article's first two days of views, predict its tota
 - LightGBM on early-view and metadata features, point and quantile objectives.
 - Conformal adjustment of the quantile model (conformalized quantile regression) using a calibration set of earlier cohorts.
 
+## Article type
+Grouped from the Wikidata "instance of" value as of the end of day 1: person, film or TV, sports event, place, organization, other. Articles with no Wikidata item yet are "other".
+
+## Timing question (association only)
+Mixed-effects model: log Y ~ log(day 0 + day 1 views) + creation hour + weekday + (1 | article type). Reports whether creation timing is associated with 30-day views after adjusting for early views. Not a causal claim: editors choose when to publish.
+
 ## Success criteria
 - Point: LightGBM has lower median absolute log error than both the flat-rate and Szabo-Huberman baselines in most rolling folds, and the paired bootstrap 95% interval for the difference on the final holdout excludes zero. Reported overall and per article type.
 - Intervals: 80% intervals cover between 77% and 83% of final holdout articles.
@@ -50,3 +58,4 @@ From a new English Wikipedia article's first two days of views, predict its tota
 - Leakage: no feature may use information after the end of day 1. Training labels respect the 30-day lag above.
 - Page renames split views across titles; pages are tracked by page id.
 - Bot traffic not caught by the agent=user filter.
+- Wikidata links and type in backfilled data are read today, not as of day 1. Same fix as survivorship: compare against the live collector.
