@@ -30,7 +30,7 @@ From a new English Wikipedia article's first two days of views, predict its tota
 ## Baselines
 1. Flat rate: Y = views on days 0 and 1 + 28 x day-1 views. Used instead of seasonal naive and ETS, which need more history than two days.
 2. Szabo-Huberman: log Y = log(views on days 0 and 1) + b, slope fixed at 1, with the variance correction when converting back.
-3. Flag baseline: rank articles by day-0 plus day-1 views and flag the top 5%.
+3. Flag baseline: rank articles by day-1 views and flag the top 5% (current practice, see Amendment 2).
 
 ## Models
 - Log-linear with a free slope and creation-hour adjustment.
@@ -66,6 +66,15 @@ Added question: how much do the first two days of views add beyond content known
 Leakage rule: content features use only the revision that existed at the end of day 0 (for a) or day 1 (for c), looked up by timestamp. Never the current text.
 
 Out of scope until the core is done: repeating the analysis on new GitHub repositories (GH Archive) to test whether the result generalizes.
+
+## Amendment 2 (2026-11-02, before any modeling)
+Reason: compare against what a team would do without a model, track every backtest, and define how the model is checked and maintained after launch.
+
+- Current-practice baseline for the flag: rank new articles by day-1 views alone (yesterday's trending list) and flag the top 5%. Replaces the day-0 plus day-1 flag baseline, which is close to it. For the point forecast, flat rate already plays this role.
+- Every backtest run is logged in MLflow (local): parameters, metrics per fold and artifacts.
+- The live system runs in shadow mode: predictions are written before outcomes exist and scored when they arrive.
+- Monitoring adds input drift and prediction drift, with an alert rule that opens a GitHub issue.
+- An online experiment for acting on the flag is designed (unit, metric, guardrails, power, duration) but not run. Power uses variance estimated from the backfill.
 
 ## Known threats
 - Survivorship in backfilled data: status (deleted, redirected) is checked after the fact. The live collector records status at the end of day 1; the size of the bias is estimated by comparing the two.
