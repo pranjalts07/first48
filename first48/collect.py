@@ -19,6 +19,7 @@ import json
 import sys
 from pathlib import Path
 
+from first48.checks import check_snapshot, check_views
 from first48.wiki import (
     fetch_daily_views,
     fetch_instance_of,
@@ -54,15 +55,15 @@ def take_snapshot(cohort, out, session):
     fetched_at = now_utc()
     for page in new_pages:
         page["fetched_at"] = fetched_at
-    n_new = write_jsonl(out / f"new_pages_{cohort}.jsonl", new_pages)
+    write_jsonl(out / f"new_pages_{cohort}.jsonl", new_pages)
 
     states = snapshot_pages([p["page_id"] for p in new_pages], session)
     items = [s["wikidata_item"] for s in states if s["wikidata_item"]]
     types = fetch_instance_of(items, session)
     for state in states:
         state["instance_of"] = types.get(state["wikidata_item"], [])
-    n_snapshots = write_jsonl(out / f"snapshot_{cohort}.jsonl", states)
-    return n_new, n_snapshots
+    write_jsonl(out / f"snapshot_{cohort}.jsonl", states)
+    return new_pages, states
 
 
 def is_article(state):
@@ -75,7 +76,7 @@ def fetch_views(cohort, n_days, kind, out, session):
     snapshot = out / f"snapshot_{cohort}.jsonl"
     if not snapshot.exists():
         print(f"no snapshot for {cohort}, skipping {kind} views", file=sys.stderr)
-        return 0
+        return None, 0
 
     articles = [s for s in read_jsonl(snapshot) if is_article(s)]
     end = cohort + dt.timedelta(days=n_days - 1)
@@ -88,7 +89,8 @@ def fetch_views(cohort, n_days, kind, out, session):
             "fetched_at": now_utc(),
             "views": views,
         })
-    return write_jsonl(out / f"views_{kind}_{cohort}.jsonl", rows)
+    write_jsonl(out / f"views_{kind}_{cohort}.jsonl", rows)
+    return rows, len(articles)
 
 
 def append_summary(path, row):
@@ -112,18 +114,29 @@ def main():
 
     session = make_session()
     run = args.date
-    n_new, n_snapshots = take_snapshot(run - dt.timedelta(days=SNAPSHOT_LAG), args.out, session)
-    n_early = fetch_views(run - dt.timedelta(days=EARLY_LAG), 2, "early", args.out, session)
-    n_full = fetch_views(run - dt.timedelta(days=FULL_LAG), 30, "full", args.out, session)
+    new_pages, states = take_snapshot(run - dt.timedelta(days=SNAPSHOT_LAG), args.out, session)
+    problems = check_snapshot(new_pages, states, is_article)
+
+    view_rows = {}
+    for kind, lag, n_days in [("early", EARLY_LAG, 2), ("full", FULL_LAG, 30)]:
+        cohort = run - dt.timedelta(days=lag)
+        rows, n_articles = fetch_views(cohort, n_days, kind, args.out, session)
+        view_rows[kind] = len(rows) if rows is not None else 0
+        if rows is not None:
+            problems += check_views(rows, n_articles, cohort, n_days)
+
+    # Files are already written, so the caller can still upload them.
+    if problems:
+        sys.exit("data checks failed:\n" + "\n".join(problems))
 
     if args.summary:
         append_summary(args.summary, {
             "run_date": run.isoformat(),
             "finished_at": now_utc(),
-            "new_pages": n_new,
-            "snapshots": n_snapshots,
-            "early_view_rows": n_early,
-            "full_view_rows": n_full,
+            "new_pages": len(new_pages),
+            "snapshots": len(states),
+            "early_view_rows": view_rows["early"],
+            "full_view_rows": view_rows["full"],
         })
 
 
