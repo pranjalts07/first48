@@ -88,3 +88,38 @@ Results
 
 Next step
 - Run the backfill month by month, then load raw files into DuckDB with staging models.
+
+## 2026-11-03
+
+What I did
+- Backfill for Jan and Feb 2026 finished (177 files, 3 h 43 min). Mar and Apr running on Actions, Jul to Sep running locally, May and Jun next.
+- First scheduled daily run: snapshot for Nov 1, early views for Oct 31, run summary committed to main. It started at 16:40 UTC, not 09:00; scheduled runs can be delayed by hours, so the "day-1 snapshot" is really a snapshot some hours after day 1.
+- DuckDB warehouse (`first48/warehouse.py`, `sql/`): raw tables, staging models for new pages, snapshots and daily views, article types, `fct_articles` (one row per article with complete 30-day views), `fct_early_views` (live), `cohort_summary`. Nine SQL data tests; the build fails if any returns rows.
+- Article types from the 120 most common Wikidata "instance of" values in Jan and Feb (`sql/seeds/article_types.csv`), labels checked against Wikidata.
+- Metrics, baselines (flat rate, Szabo-Huberman, log-linear) and LightGBM, rolling-origin backtest with MLflow tracking.
+- 80% intervals: LightGBM quantiles with a conformal adjustment from the most recent 14 days of training cohorts.
+- Day-2 flag: top 5% of each creation day by forecast, against top 5% by day-1 views.
+- Content comparison (Amendment 1): text at the end of day 0 and day 1 fetched by revision timestamp, sentence embeddings, three models.
+- Mixed-effects timing model in R.
+- Shadow mode and drift monitoring in the daily job, waiting for a model trained on the full backfill.
+
+Decisions and why
+- Plain SQL files run in order by a short Python script instead of dbt: same idea (models plus data tests), nothing extra to install.
+- t0 is the first time a page entered article space; the snapshot and views used are the ones from that cohort.
+- Log errors use log(1 + views): about 2% of articles have zero views in 30 days.
+- Point model is LightGBM with an L1 loss on log views, so it predicts the median, which matches the primary metric.
+- Szabo-Huberman keeps the lognormal mean correction, as written in the plan, even though it raises the median error.
+- The flag ranks articles within their creation day, so it can be acted on at the end of day 1 without waiting for the week.
+- Text encoder fixed before any fold is scored: sentence-transformers/all-MiniLM-L6-v2, revision 1110a243fdf4706b3f48f1d95db1a4f5529b4d41.
+- Renamed (title at snapshot differs from title at t0) and number of entries are not model features: both are only known later.
+- Disambiguation pages (about 3% of articles) stay in the population, as the plan defines it, under "other".
+- Collection and analysis requirements split so the daily job does not install torch.
+
+Dead ends
+- The "no articles dropped" data test first matched any view on the cohort date, so a cohort still being collected looked broken (430 rows flagged). It now checks day 0 only.
+
+Notes for later
+- 7% of backfilled articles were renamed after creation; their views are fetched under the current title, so views under the old title are missed. Part of the known rename threat.
+
+Next step
+- Finish the backfill and text fetch, train the shadow-mode model, then run every backtest on the full data.
