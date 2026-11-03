@@ -1,0 +1,52 @@
+name: content
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: First cohort day (YYYY-MM-DD)
+        required: true
+      end:
+        description: Last cohort day (YYYY-MM-DD)
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: content
+  cancel-in-progress: false
+
+jobs:
+  content:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      GH_TOKEN: ${{ github.token }}
+      START: ${{ inputs.start }}
+      END: ${{ inputs.end }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt
+
+      - name: Download snapshots and finished cohorts
+        run: |
+          gh release view content > /dev/null 2>&1 || \
+            gh release create content --title "Content" \
+              --notes "Plain text of each backfilled article as of the end of day 0 and day 1."
+          mkdir -p data/backfill data/content
+          gh release download backfill --dir data/backfill --pattern "snapshot_*.jsonl"
+          gh release download content --dir data/content --pattern "content_*.jsonl" || true
+
+      - name: Fetch content
+        run: python -m first48.content "$START" "$END" --snapshots data/backfill --out data/content | tee written.txt
+
+      - name: Upload new files
+        if: always()
+        run: |
+          if [ -s written.txt ]; then
+            xargs gh release upload content --clobber < written.txt
+          fi
