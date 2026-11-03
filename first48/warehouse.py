@@ -90,6 +90,8 @@ def main():
     for table in ["raw_new_pages", "stg_new_pages", "stg_daily_views", "fct_articles", "fct_early_views"]:
         n = con.execute(f"select count(*) from {table}").fetchone()[0]
         print(f"{table}: {n:,} rows")
+    # Plain CSV copy for the R analysis.
+    con.execute(f"copy fct_articles to '{args.db.with_name('fct_articles.csv')}'")
     if failures:
         sys.exit("data tests failed:\n" + "\n".join(failures))
     print("all data tests passed")
