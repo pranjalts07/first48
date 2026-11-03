@@ -6,3 +6,4 @@ pandas==3.1.0
 pyarrow==25.0.1
 lightgbm==4.7.0
 mlflow==3.17.2
+mwparserfromhell==0.7.2
