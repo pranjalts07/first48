@@ -32,7 +32,7 @@ The forecast is produced once per item, after its first two days.
 - Input drift: feature distributions of each new cohort compared with the training cohorts.
 - Prediction drift: distribution of predicted 30-day views over time.
 - An alert opens a GitHub issue when coverage or error crosses a set threshold.
-- Retraining policy: RETRAINING.md.
+- Retraining policy: the Retraining section of MODEL_CARD.md.
 
 ## Risks
 - Survivorship in backfilled data (page state read after the fact). Measured against live snapshots.
