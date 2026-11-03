@@ -38,3 +38,18 @@ def test_origin_inside_holdout_is_refused():
     df = articles(dt.date(2026, 7, 1), 60)
     with pytest.raises(ValueError):
         run(df, [dt.date(2026, 8, 15)])
+
+
+def test_content_model_uses_embeddings():
+    import numpy as np
+    from first48.models import ContentGradientBoosting
+
+    df = articles(dt.date(2026, 1, 1), 10)
+    rng = np.random.default_rng(0)
+    df["emb_d0"] = list(rng.normal(size=(len(df), 4)).astype(np.float32))
+    df["emb_d1"] = df["emb_d0"]
+    for with_views in (False, True):
+        model = ContentGradientBoosting("d0", with_views=with_views)
+        pred = model.fit(df).predict(df)
+        assert pred.shape == (len(df),)
+        assert (pred >= 0).all()
