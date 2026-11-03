@@ -41,6 +41,25 @@ def data_section(db):
     ]
 
 
+def correlation_section():
+    df = pd.read_csv(R / "correlation.csv").set_index("group")
+    lines = [
+        "## Early vs 30-day views",
+        "`python -m first48.correlation`",
+        "",
+        "Correlation of log(1 + views) on days 0 and 1 with log(1 + views) on days 0 to 29, pre-holdout cohorts.",
+        "",
+        "| Creation days | Articles | Correlation | 95% CI |",
+        "|---|---|---|---|",
+    ]
+    for group in ["all", "weekday", "weekend"]:
+        r = df.loc[group]
+        lines.append(f"| {group} | {int(r.articles):,} | {num(r.correlation)} | {num(r.ci_low)} to {num(r.ci_high)} |")
+    lines += ["", f"Single creation days range from {num(df.loc['single days, min', 'correlation'])} "
+                  f"to {num(df.loc['single days, max', 'correlation'])}."]
+    return lines
+
+
 def relative_gain(model_err, baseline_err):
     return 1 - model_err / baseline_err
 
@@ -176,6 +195,7 @@ def main():
         data_section(args.db),
     ]
     optional = [
+        (R / "correlation.csv", correlation_section),
         (R / "backtest_point_folds.csv", backtest_section),
         (R / "backtest_interval_folds.csv", interval_section),
         (R / "backtest_flag_folds.csv", lambda: flag_section(
