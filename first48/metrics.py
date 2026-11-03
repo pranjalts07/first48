@@ -51,3 +51,23 @@ def paired_bootstrap(err_a, err_b, stat=np.median, n_boot=2000, seed=0):
         i = rng.integers(0, len(err_a), size=len(err_a))
         diffs.append(stat(err_a[i]) - stat(err_b[i]))
     return float(stat(err_a) - stat(err_b)), float(np.quantile(diffs, 0.025)), float(np.quantile(diffs, 0.975))
+
+
+def average_precision(labels, scores):
+    """Area under the precision-recall curve, as the mean precision at each true positive."""
+    order = np.argsort(-np.asarray(scores, dtype=float), kind="stable")
+    hits = np.asarray(labels, dtype=bool)[order]
+    if not hits.any():
+        return float("nan")
+    precision_at_k = np.cumsum(hits) / np.arange(1, len(hits) + 1)
+    return float(precision_at_k[hits].mean())
+
+
+def precision_at_recall(labels, scores, recall):
+    """Best precision reachable at or above a given recall when flagging the top-k scores."""
+    order = np.argsort(-np.asarray(scores, dtype=float), kind="stable")
+    hits = np.asarray(labels, dtype=bool)[order]
+    tp = np.cumsum(hits)
+    recalls = tp / hits.sum()
+    precisions = tp / np.arange(1, len(hits) + 1)
+    return float(precisions[recalls >= recall].max())
