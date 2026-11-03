@@ -1,0 +1,73 @@
+qid,label,article_type
+Q5,human,person
+Q11424,film,film_tv
+Q5398426,television series,film_tv
+Q21191270,television series episode,film_tv
+Q3464665,television series season,film_tv
+Q18011172,film project,film_tv
+Q27020041,sports season,sports_event
+Q26894053,basketball team season,sports_event
+Q46190676,tennis event,sports_event
+Q114609228,recurring sporting event edition,sports_event
+Q26887310,association football team season,sports_event
+Q18536594,Olympic sporting event,sports_event
+Q26895936,American football team season,sports_event
+Q47345468,tennis tournament edition,sports_event
+Q16510064,sporting event,sports_event
+Q1539532,sports season of a sports club,sports_event
+Q46135307,nation at sport competition,sports_event
+Q26896697,baseball team season,sports_event
+Q17317604,professional wrestling event,sports_event
+Q13406554,sports competition,sports_event
+Q532,village,place
+Q21672098,village of Ukraine,place
+Q56061,administrative territorial entity,place
+Q16970,church building,place
+Q41176,building,place
+Q589282,ward or electoral division of the United Kingdom,place
+Q11774263,Assembly constituency,place
+Q192611,electoral unit,place
+Q486972,human settlement,place
+Q124339652,former constituency of the Maharashtra Legislative Assembly,place
+Q8502,mountain,place
+Q55488,railway station,place
+Q18226756,Landtag electoral district,place
+Q3257686,locality,place
+Q34442,road,place
+Q5084,hamlet,place
+Q28111,township in the United States,place
+Q3947,house,place
+Q839954,archaeological site,place
+Q12280,bridge,place
+Q4022,river,place
+Q192287,administrative divisions of Russia,place
+Q123705,neighborhood,place
+Q23397,lake,place
+Q32815,mosque,place
+Q3957,town,place
+Q1782540,railway town,place
+Q17350442,venue,place
+Q13226383,facility,place
+Q33506,museum,place
+Q16917,hospital,place
+Q783794,company,organization
+Q215380,musical group,organization
+Q43229,organization,organization
+Q4830453,business,organization
+Q476028,association football club,organization
+Q176799,military unit,organization
+Q7278,political party,organization
+Q3914,school,organization
+Q398141,school district,organization
+Q6881511,enterprise,organization
+Q11032,newspaper,organization
+Q163740,nonprofit organization,organization
+Q327333,government agency,organization
+Q2001305,television channel,organization
+Q46970,airline,organization
+Q847017,sports club,organization
+Q1616075,television station,organization
+Q14350,radio station,organization
+Q623109,sports league,organization
+Q11707,restaurant,organization
+Q1002697,periodical,organization
