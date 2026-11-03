@@ -69,3 +69,17 @@ def test_article_type_priority(tmp_path):
     con, _ = build_small(tmp_path)
     types = dict(con.execute("select page_id, article_type from fct_articles").fetchall())
     assert types == {1: "person", 3: "organization"}
+
+
+def test_cohort_still_collecting_is_not_flagged(tmp_path):
+    folder = tmp_path / "backfill"
+    folder.mkdir()
+    write(folder / "new_pages_2026-01-01.jsonl", [page(1, "Alpha", "2026-01-01T05:00:00Z")])
+    write(folder / "snapshot_2026-01-01.jsonl", [state(1, "Alpha")])
+    write(folder / "views_full_2026-01-01.jsonl", [
+        {"page_id": 1, "title": "Alpha", "fetched_at": "x", "views": {"2026-01-02": 3}},
+    ])
+    write(folder / "new_pages_2026-01-02.jsonl", [page(2, "Beta", "2026-01-02T05:00:00Z")])
+    write(folder / "snapshot_2026-01-02.jsonl", [state(2, "Beta")])
+    _, failures = build(tmp_path / "test.duckdb", {"backfill": folder})
+    assert failures == []
