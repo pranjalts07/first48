@@ -116,10 +116,14 @@ Decisions and why
 - Collection and analysis requirements split so the daily job does not install torch.
 
 Dead ends
+- The local Jul to Sep backfill stopped at Jul 13 when the network dropped (connection reset, then failed DNS lookups). It now runs in a retry loop; days already written are skipped, and a half-written day is redone because a day only counts as done once its views file exists.
 - The "no articles dropped" data test first matched any view on the cohort date, so a cohort still being collected looked broken (430 rows flagged). It now checks day 0 only.
 
 Notes for later
 - 7% of backfilled articles were renamed after creation; their views are fetched under the current title, so views under the old title are missed. Part of the known rename threat.
+
+Also
+- README rewritten: method, reproduce steps and FAQ. The results table and chart are added after the holdout is scored. The chart comes from `python -m first48.chart`, which reads the backtest results file.
 
 Next step
 - Finish the backfill and text fetch, train the shadow-mode model, then run every backtest on the full data.
