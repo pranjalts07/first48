@@ -34,3 +34,10 @@ def test_bootstrap_interval_contains_estimate():
     est, lo, hi = paired_bootstrap(a, b, n_boot=200)
     assert lo < est < hi
     assert lo > 0
+
+
+def test_mde_shrinks_with_sample_size():
+    from first48.power import mde
+
+    assert np.isclose(mde(1.0, 100), 0.396, atol=0.001)
+    assert mde(1.0, 400) < mde(1.0, 100)
