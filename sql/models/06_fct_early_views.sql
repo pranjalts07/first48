@@ -7,6 +7,7 @@ select
     p.t0,
     hour(p.t0) as creation_hour,
     isodow(p.t0) as weekday,
+    p.source,
     s.title,
     t.article_type,
     sum(v.views) filter (where v.day_index = 0) as views_d0,
