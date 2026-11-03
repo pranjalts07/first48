@@ -81,9 +81,33 @@ class GradientBoosting:
             **objective,
         )
 
+    def matrix(self, df):
+        return features(df)
+
     def fit(self, train):
-        self.model.fit(features(train), np.log1p(train["views_30d"]))
+        self.model.fit(self.matrix(train), np.log1p(train["views_30d"]))
         return self
 
     def predict(self, test):
-        return np.expm1(self.model.predict(features(test))).clip(min=0)
+        return np.expm1(self.model.predict(self.matrix(test))).clip(min=0)
+
+
+class ContentGradientBoosting(GradientBoosting):
+    """LightGBM on a text embedding and article type, optionally with the early-view features.
+
+    Expects an emb_d0 or emb_d1 column holding one vector per article.
+    """
+
+    def __init__(self, text_day, with_views, seed=0):
+        super().__init__(seed=seed)
+        self.text_day = text_day
+        self.with_views = with_views
+
+    def matrix(self, df):
+        emb = pd.DataFrame(np.vstack(df[f"emb_{self.text_day}"].to_numpy()), index=df.index).add_prefix("emb_")
+        if self.with_views:
+            base = features(df)
+        else:
+            base = pd.DataFrame({"article_type": pd.Categorical(df["article_type"], categories=ARTICLE_TYPES)},
+                                index=df.index)
+        return pd.concat([base, emb], axis=1)
