@@ -72,12 +72,13 @@ def backtest_section():
         "## Rolling backtests",
         "`python -m first48.backtest`",
         "",
-        f"{len(pivot)} monthly origins, test week after each, 5 seeds for LightGBM.",
+        f"{len(pivot)} monthly origins, test week after each, 5 seeds for LightGBM. "
+        "lightgbm_no_edits leaves out the edit activity features.",
         "",
         "| Model | Median abs log error (mean over folds) | LightGBM better by | Folds LightGBM wins |",
         "|---|---|---|---|",
     ]
-    for model in ["flat_rate", "szabo_huberman", "log_linear", "lightgbm"]:
+    for model in ["flat_rate", "szabo_huberman", "log_linear", "lightgbm_no_edits", "lightgbm"]:
         err = pivot[model].mean()
         if model == "lightgbm":
             lines.append(f"| {model} | {num(err)} | | |")

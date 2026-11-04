@@ -20,7 +20,7 @@ from first48.models import FlatRate, GradientBoosting, LogLinear, SzaboHuberman
 
 LABEL_LAG = 30
 TEST_DAYS = 7
-ORIGINS = [dt.date(2026, month, 1) for month in range(3, 9)]
+ORIGINS = [dt.date(2025 + (m - 1) // 12, (m - 1) % 12 + 1, 1) for m in range(3, 21)]
 HOLDOUT_START = dt.date(2026, 8, 20)
 SEEDS = range(5)
 
@@ -46,6 +46,7 @@ def predict_fold(train, test):
     preds = {name: model().fit(train).predict(test) for name, model in BASELINES.items()}
     for seed in SEEDS:
         preds[f"lightgbm_seed{seed}"] = GradientBoosting(seed=seed).fit(train).predict(test)
+        preds[f"lightgbm_no_edits_seed{seed}"] = GradientBoosting(seed=seed, edits=False).fit(train).predict(test)
     return pd.DataFrame(preds, index=test.index)
 
 
