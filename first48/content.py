@@ -30,7 +30,7 @@ def day_ends(cohort):
 
 
 def revisions_before(page_id, end_d0, end_d1, session):
-    """Latest revision at or before each day end, plus edit counts, newest first."""
+    """Latest revision at or before the end of day 0 and of day 1."""
     params = {
         "action": "query",
         "prop": "revisions",
