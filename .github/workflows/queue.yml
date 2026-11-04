@@ -3,6 +3,9 @@ name: queue
 on:
   schedule:
     - cron: "*/20 * * * *"
+  workflow_run:
+    workflows: [backfill, content, edits]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
