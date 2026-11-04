@@ -28,9 +28,15 @@ select
     v.views_d0,
     v.views_d1,
     v.views_d0 + v.views_d1 as views_48h,
-    v.views_30d
+    v.views_30d,
+    e.edits_d0,
+    e.edits_48h,
+    e.editors_48h,
+    e.size_d0,
+    e.size_d1
 from stg_new_pages p
 join stg_snapshots s using (page_id)
 join stg_article_types t using (page_id)
 join totals v using (page_id)
+left join stg_edits e using (page_id)
 where s.is_article;

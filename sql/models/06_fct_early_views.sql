@@ -11,10 +11,16 @@ select
     s.title,
     t.article_type,
     sum(v.views) filter (where v.day_index = 0) as views_d0,
-    sum(v.views) filter (where v.day_index = 1) as views_d1
+    sum(v.views) filter (where v.day_index = 1) as views_d1,
+    e.edits_d0,
+    e.edits_48h,
+    e.editors_48h,
+    e.size_d0,
+    e.size_d1
 from stg_daily_views v
 join stg_new_pages p using (page_id)
 join stg_snapshots s using (page_id)
 join stg_article_types t using (page_id)
+left join stg_edits e using (page_id)
 where v.kind = 'early' and s.is_article
 group by all;

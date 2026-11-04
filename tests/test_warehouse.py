@@ -37,6 +37,9 @@ def build_small(tmp_path):
         {"page_id": 1, "title": "Alpha", "fetched_at": "x", "views": {"2026-01-01": 10, "2026-01-02": 5, "2026-01-30": 1}},
         {"page_id": 3, "title": "Gamma (band)", "fetched_at": "x", "views": {}},
     ])
+    write(folder / "edits_2026-01-01.jsonl", [
+        {"page_id": 1, "edits_d0": 2, "edits_48h": 5, "editors_48h": 2, "size_d0": 800, "size_d1": 1500},
+    ])
     con, failures = build(tmp_path / "test.duckdb", {"backfill": folder, "live": tmp_path / "none"})
     return con, failures
 
@@ -83,3 +86,9 @@ def test_cohort_still_collecting_is_not_flagged(tmp_path):
     write(folder / "snapshot_2026-01-02.jsonl", [state(2, "Beta")])
     _, failures = build(tmp_path / "test.duckdb", {"backfill": folder})
     assert failures == []
+
+
+def test_edits_join_and_missing_edits_stay_null(tmp_path):
+    con, _ = build_small(tmp_path)
+    rows = dict(con.execute("select page_id, edits_48h from fct_articles").fetchall())
+    assert rows == {1: 5, 3: None}
