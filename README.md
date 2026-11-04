@@ -16,9 +16,9 @@ Two decisions use the forecast, once per article, at the end of its first full d
 
 ## How it works
 
-1. **Data.** New articles from the MediaWiki creation and move logs, their daily views from the Wikimedia pageviews API (human traffic only), and their type from Wikidata. Cohorts from January to September 2026 are backfilled; new cohorts are collected daily by a scheduled GitHub Action. See notes/02_data_source.md.
+1. **Data.** New articles from the MediaWiki creation and move logs, their daily views from the Wikimedia pageviews API (human traffic only), and their type from Wikidata. Cohorts from January 2025 to September 2026 are backfilled; new cohorts are collected daily by a scheduled GitHub Action. See notes/02_data_source.md.
 2. **Warehouse.** Raw files load into DuckDB, plain SQL models build one row per article, and SQL data tests fail the build on duplicates, gaps or dropped articles (`python -m first48.warehouse`).
-3. **Models.** Two published-style baselines (flat-rate extrapolation and Szabo-Huberman) and a log-linear model, against LightGBM on early views, timing and article type.
+3. **Models.** Two published-style baselines (flat-rate extrapolation and Szabo-Huberman) and a log-linear model, against LightGBM on early views, timing, article type and edit activity in the first two days.
 4. **Ranges.** LightGBM quantile models, adjusted with conformalized quantile regression so the 80% range holds its coverage.
 5. **Flag.** The top 5% of each day's new articles by forecast, compared with the current practice of ranking by day-1 views.
 6. **Validation.** Rolling monthly backtests where training only uses articles whose 30-day outcome was already known at the forecast date, then a final 6-week holdout scored once.
