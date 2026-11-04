@@ -18,7 +18,7 @@ Two decisions use the forecast, once per article, at the end of its first full d
 
 1. **Data.** New articles from the MediaWiki creation and move logs, their daily views from the Wikimedia pageviews API (human traffic only), and their type from Wikidata. Cohorts from January 2025 to September 2026 are backfilled; new cohorts are collected daily by a scheduled GitHub Action. See notes/02_data_source.md.
 2. **Warehouse.** Raw files load into DuckDB, plain SQL models build one row per article, and SQL data tests fail the build on duplicates, gaps or dropped articles (`python -m first48.warehouse`).
-3. **Models.** Two published-style baselines (flat-rate extrapolation and Szabo-Huberman) and a log-linear model, against LightGBM on early views, timing, article type and edit activity in the first two days.
+3. **Models.** Baselines from the early-popularity literature (flat-rate extrapolation, Szabo-Huberman with and without its variance correction, and a Pinto-style model on each day's views) and a log-linear model, against LightGBM on early views, timing, article type and edit activity in the first two days.
 4. **Ranges.** LightGBM quantile models, adjusted with conformalized quantile regression so the 80% range holds its coverage.
 5. **Flag.** The top 5% of each day's new articles by forecast, compared with the current practice of ranking by day-1 views.
 6. **Validation.** Rolling monthly backtests where training only uses articles whose 30-day outcome was already known at the forecast date, then a final 6-week holdout scored once.
@@ -35,6 +35,8 @@ python -m first48.backtest         # rolling backtests
 python -m first48.intervals        # 80% ranges
 python -m first48.flag             # day-2 flag
 python -m first48.compare          # content only vs early views
+python -m first48.dyk fetch 2025-01 2026-10   # Main Page "Did you know" features
+python -m first48.dyk errors       # error for featured vs other articles
 Rscript analysis/timing.R          # creation timing model
 python -m first48.holdout          # final holdout, runs once
 python -m first48.results          # writes RESULTS.md
@@ -42,7 +44,7 @@ python -m first48.chart            # writes the chart
 pytest
 ```
 
-Raw data is attached to the `backfill`, `data` and `content` releases.
+Raw data is attached to the `backfill`, `backfill-2025`, `data`, `content`, `edits` and `dyk` releases.
 
 ## FAQ
 
@@ -57,6 +59,9 @@ A 30-day outcome is only known 30 days after an article is created, so at each f
 
 **What does the article text add?**
 A separate comparison (Amendment 1 in PLAN.md) trains a model on the text as it stood at the end of day 0, with no view data, and measures how much the first two days of views add on top of it.
+
+**What about articles that get featured on the Main Page?**
+New articles can appear in "Did you know" on the Main Page in their first weeks, after the forecast is made. That spike is not knowable on day 2. The error is reported separately for featured articles, labeled from Wikipedia's own archive of past sets, so readers can see how much of the remaining error it explains.
 
 **Does publishing time matter?**
 A mixed-effects model in R tests whether creation hour and weekday are associated with 30-day views after adjusting for early views. It is an association, not a cause: editors choose when to publish.
