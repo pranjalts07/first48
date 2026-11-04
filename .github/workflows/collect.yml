@@ -36,6 +36,14 @@ jobs:
       - name: Collect
         run: python -m first48.collect --out data/raw --summary collector_runs.csv | tee written.txt
 
+      # Edit history is read by timestamp, so a late run still records
+      # exactly what was known at the end of day 1.
+      - name: Edit activity for the snapshot cohort
+        if: always()
+        run: |
+          COHORT=$(date -u -d "2 days ago" +%F)
+          python -m first48.edits "$COHORT" "$COHORT" --pages data/raw --out data/raw | tee -a written.txt
+
       - name: Upload new files
         if: always()
         run: |

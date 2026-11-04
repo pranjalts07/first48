@@ -9,6 +9,10 @@ on:
       end:
         description: Last cohort day (YYYY-MM-DD)
         required: true
+      bundle:
+        description: Upload one compressed file for the month to the backfill-YYYY release (start and end in one month)
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -26,6 +30,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       START: ${{ inputs.start }}
       END: ${{ inputs.end }}
+      BUNDLE: ${{ inputs.bundle }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -45,8 +50,21 @@ jobs:
         run: python -m first48.backfill "$START" "$END" --out data/backfill | tee written.txt
 
       - name: Upload new files
-        if: always()
+        if: always() && env.BUNDLE != 'true'
         run: |
           if [ -s written.txt ]; then
             xargs gh release upload backfill --clobber < written.txt
           fi
+
+      # A bundle is uploaded only when the whole month finished, so a
+      # bundle on the release always holds every day of its month.
+      - name: Upload month bundle
+        if: env.BUNDLE == 'true'
+        run: |
+          MONTH=${START:0:7}
+          RELEASE=backfill-${START:0:4}
+          gh release view $RELEASE > /dev/null 2>&1 || \
+            gh release create $RELEASE --title "Backfill ${START:0:4}" \
+              --notes "Past cohorts, one compressed file per month. Page state is as of collection time, not day 1."
+          tar czf backfill_$MONTH.tar.gz -C data/backfill $(cd data/backfill && ls *_$MONTH-*.jsonl)
+          gh release upload $RELEASE backfill_$MONTH.tar.gz --clobber

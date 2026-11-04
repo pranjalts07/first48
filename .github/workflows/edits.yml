@@ -1,0 +1,53 @@
+name: edits
+
+on:
+  workflow_dispatch:
+    inputs:
+      month:
+        description: Cohort month (YYYY-MM)
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: edits
+  cancel-in-progress: false
+
+jobs:
+  edits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      GH_TOKEN: ${{ github.token }}
+      MONTH: ${{ inputs.month }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt
+
+      - name: Download new pages and snapshots for the month
+        run: |
+          mkdir -p data/backfill data/edits
+          gh release download backfill --dir data/backfill --pattern "new_pages_$MONTH-*.jsonl" || true
+          gh release download backfill --dir data/backfill --pattern "snapshot_$MONTH-*.jsonl" || true
+          if gh release download backfill-${MONTH:0:4} --pattern "backfill_$MONTH.tar.gz"; then
+            tar xzf backfill_$MONTH.tar.gz -C data/backfill
+          fi
+
+      - name: Fetch edit activity
+        run: |
+          START=$MONTH-01
+          END=$(date -d "$START +1 month -1 day" +%F)
+          python -m first48.edits "$START" "$END" --pages data/backfill --out data/edits
+
+      # Uploaded only when the whole month finished.
+      - name: Upload month bundle
+        run: |
+          gh release view edits > /dev/null 2>&1 || \
+            gh release create edits --title "Edits" \
+              --notes "Edit activity of each backfilled article from creation to the end of day 1, one file per month."
+          tar czf edits_$MONTH.tar.gz -C data/edits $(cd data/edits && ls edits_$MONTH-*.jsonl)
+          gh release upload edits edits_$MONTH.tar.gz --clobber
