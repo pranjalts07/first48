@@ -53,3 +53,22 @@ def test_content_model_uses_embeddings():
         pred = model.fit(df).predict(df)
         assert pred.shape == (len(df),)
         assert (pred >= 0).all()
+
+
+def test_edit_features_are_optional():
+    import numpy as np
+    from first48.models import features
+
+    df = articles(dt.date(2026, 1, 1), 2)
+    assert "log_edits_48h" not in features(df)
+    assert features(df, edits=True)["log_edits_48h"].isna().all()
+    df["edits_48h"] = 3
+    assert np.allclose(features(df, edits=True)["log_edits_48h"], np.log1p(3))
+
+
+def test_no_edits_model_is_reported_per_seed():
+    from first48.backtest import fold_metrics
+
+    df = articles(dt.date(2026, 1, 1), 70)
+    models = set(fold_metrics(run(df, [dt.date(2026, 3, 1)]))["model"])
+    assert models == {"flat_rate", "szabo_huberman", "log_linear", "lightgbm", "lightgbm_no_edits"}

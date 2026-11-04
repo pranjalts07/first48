@@ -8,11 +8,12 @@ import numpy as np
 import pandas as pd
 
 ARTICLE_TYPES = ["person", "film_tv", "sports_event", "place", "organization", "other"]
+EDIT_COLUMNS = ["edits_d0", "edits_48h", "editors_48h", "size_d0", "size_d1"]
 
 
-def features(df):
+def features(df, edits=False):
     t0 = pd.to_datetime(df["t0"])
-    return pd.DataFrame({
+    out = pd.DataFrame({
         "log_d0": np.log1p(df["views_d0"]),
         "log_d1": np.log1p(df["views_d1"]),
         "hours_day0": 24 - t0.dt.hour - t0.dt.minute / 60,
@@ -20,6 +21,12 @@ def features(df):
         "is_move": (df["source"] == "move").astype(int),
         "article_type": pd.Categorical(df["article_type"], categories=ARTICLE_TYPES),
     }, index=df.index)
+    if edits:
+        # Missing edit history stays missing; LightGBM learns a direction for it.
+        for col in EDIT_COLUMNS:
+            values = df[col] if col in df else pd.Series(np.nan, index=df.index)
+            out[f"log_{col}"] = np.log1p(values.astype(float))
+    return out
 
 
 class FlatRate:
@@ -66,7 +73,8 @@ class LogLinear:
 class GradientBoosting:
     """LightGBM on log views. alpha=None fits the median with an L1 loss."""
 
-    def __init__(self, seed=0, alpha=None, n_estimators=400):
+    def __init__(self, seed=0, alpha=None, n_estimators=400, edits=True):
+        self.edits = edits
         objective = {"objective": "quantile", "alpha": alpha} if alpha else {"objective": "l1"}
         self.model = lgb.LGBMRegressor(
             n_estimators=n_estimators,
@@ -82,7 +90,7 @@ class GradientBoosting:
         )
 
     def matrix(self, df):
-        return features(df)
+        return features(df, edits=self.edits)
 
     def fit(self, train):
         self.model.fit(self.matrix(train), np.log1p(train["views_30d"]))
@@ -99,7 +107,7 @@ class ContentGradientBoosting(GradientBoosting):
     """
 
     def __init__(self, text_day, with_views, seed=0):
-        super().__init__(seed=seed)
+        super().__init__(seed=seed, edits=False)
         self.text_day = text_day
         self.with_views = with_views
 

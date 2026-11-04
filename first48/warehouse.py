@@ -40,6 +40,14 @@ RAW_TABLES = {
         "fetched_at": "VARCHAR",
         "views": "MAP(VARCHAR, INTEGER)",
     }),
+    "raw_edits": ("edits_*.jsonl", {
+        "page_id": "BIGINT",
+        "edits_d0": "INTEGER",
+        "edits_48h": "INTEGER",
+        "editors_48h": "INTEGER",
+        "size_d0": "INTEGER",
+        "size_d1": "INTEGER",
+    }),
 }
 
 
