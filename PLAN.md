@@ -76,6 +76,18 @@ Reason: compare against what a team would do without a model, track every backte
 - Monitoring adds input drift and prediction drift, with an alert rule that opens a GitHub issue.
 - An online experiment for acting on the flag is designed (unit, metric, guardrails, power, duration) but not run. Power uses variance estimated from the backfill.
 
+## Amendment 3 (2026-11-03, before any reported result)
+Reason: a review of the collected data found three gaps. The training data has no November or December, so holiday behavior is untested. The model sees only views, timing and type, while edit activity in the first two days is already partly fetched and then thrown away. And the plan fixes a single forecast at day 2 without measuring what waiting longer would buy. A trial run on January and February cohorts, with an origin outside this plan, was used only to check that the code works; none of its numbers are reported.
+
+Measured before deciding: the share of logged new pages that still exist today is 92.7% for January 2026 cohorts, 92.8% for February and 93.4% for July, and 93.7% and 89.5% on two sampled 2025 days. Most deletions happen in the first weeks, so older cohorts are not much more affected by survivorship than recent ones.
+
+- Data: cohorts from 2025-01-01 to 2025-12-31 are added, collected the same way as the 2026 backfill. Text is not fetched for them; the content comparison (Amendment 1) stays on 2026 cohorts.
+- Splits: rolling origins become monthly from 2025-03-01 to 2026-08-01. Same 30-day label lag, 7-day test windows and 5 seeds. The final holdout is unchanged and still unscored.
+- Year-over-year check: models trained only on 2025 cohorts are scored on 2026 cohorts before the holdout, to measure how much accuracy drops a year later.
+- Features: number of edits on day 0, number of edits and of distinct editors from t0 to the end of day 1, and page size in bytes at the end of day 0 and day 1. All come from the revision history, which is timestamped, so they are exactly what was known at the end of day 1. Edits made before t0 (in draft space) are not counted.
+- The backtests also report LightGBM without the edit features, so the added value of edit activity is measured, not assumed.
+- After the core results are in: forecasts updated at day 4 and day 8 with the same models and more days of views, to measure how much accuracy improves by waiting. The day-2 forecast remains the primary result.
+
 ## Known threats
 - Survivorship in backfilled data: status (deleted, redirected) is checked after the fact. The live collector records status at the end of day 1; the size of the bias is estimated by comparing the two.
 - Leakage: no feature may use information after the end of day 1. Training labels respect the 30-day lag above.
