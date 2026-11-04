@@ -88,6 +88,13 @@ Measured before deciding: the share of logged new pages that still exist today i
 - The backtests also report LightGBM without the edit features, so the added value of edit activity is measured, not assumed.
 - After the core results are in: forecasts updated at day 4 and day 8 with the same models and more days of views, to measure how much accuracy improves by waiting. The day-2 forecast remains the primary result.
 
+## Amendment 4 (2026-11-04, before any reported result)
+Reason: a check of the source papers found that the baselines are weaker than they should be for this metric. Szabo and Huberman (2010) recommend the variance correction for errors on the raw scale; it targets the mean on the raw scale, and on the log scale it moves every forecast up by the same amount, away from the fit that log error rewards. Pinto, Almeida and Goncalves (2013) improve on Szabo-Huberman by using the views of each early period separately rather than their total. Separately, new articles can be featured in "Did you know" on the Main Page after day 1 but within the 30 days, which no day-2 forecast can see.
+
+- Baselines added: Szabo-Huberman without the variance correction (log Y = log(views on days 0 and 1) + b, prediction exp of the fitted log), and a Pinto-style linear model of log Y on log day-0 views and log day-1 views with free slopes. The planned Szabo-Huberman stays and is reported.
+- Success criteria: the point criterion applies to every baseline, including the two added ones.
+- Error analysis: articles featured in "Did you know" are labeled from the Did you know archive pages, which give the UTC time each set left the Main Page. An article counts as featured if its set started on day 2 to day 29 after creation. Errors are reported for featured and other articles separately. The label is never a model input.
+
 ## Known threats
 - Survivorship in backfilled data: status (deleted, redirected) is checked after the fact. The live collector records status at the end of day 1; the size of the bias is estimated by comparing the two.
 - Leakage: no feature may use information after the end of day 1. Training labels respect the 30-day lag above.
