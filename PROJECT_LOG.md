@@ -125,5 +125,14 @@ Notes for later
 Also
 - README rewritten: method, reproduce steps and FAQ. The results table and chart are added after the holdout is scored. The chart comes from `python -m first48.chart`, which reads the backtest results file.
 
+Data review and Amendment 3
+- Backfill and text runs over two months hit the 6-hour job limit and were cancelled. Files written before the cancel were uploaded, so Jan 1 to Apr 15 (views) and Jan 1 to Feb 17 (text) are in. Runs are now at most 30 to 40 days.
+- Share of logged new pages that still exist: 92.7% (Jan 2026), 92.8% (Feb), 93.4% (Jul), and 93.7% and 89.5% on two 2025 days. Deletions happen early, so older cohorts are not much more affected.
+- Only about a third of logged creations are articles; the rest are redirects.
+- Median 30-day views per article is 74; the top 10% get 1,195 or more (Jan and Feb cohorts).
+- Raw files are about 0.95 MB a day, 8 times smaller compressed. Download time is the limit, not space.
+- A release holds at most 1,000 files, so 2025 goes on its own release with one compressed file per month.
+- The content fetch already read revision history up to the end of day 1 but kept only the last revision. Edit activity is now fetched on its own, for every backfilled month and daily for live cohorts.
+
 Next step
-- Finish the backfill and text fetch, train the shadow-mode model, then run every backtest on the full data.
+- Finish the backfill, text and edits runs, train the shadow-mode model, then run every backtest on the full data.
