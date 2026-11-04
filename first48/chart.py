@@ -14,7 +14,7 @@ import pandas as pd
 
 MODELS = {
     "flat_rate": ("Flat rate", "#eb6834", "s"),
-    "szabo_huberman": ("Szabo-Huberman", "#1baf7a", "^"),
+    "szabo_huberman_log": ("Szabo-Huberman", "#1baf7a", "^"),
     "log_linear": ("Log-linear", "#eda100", "D"),
     "lightgbm": ("LightGBM", "#2a78d6", "o"),
 }

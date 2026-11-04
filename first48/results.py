@@ -12,6 +12,8 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 
+from first48.backtest import BASELINES
+
 R = Path("results")
 
 
@@ -73,12 +75,13 @@ def backtest_section():
         "`python -m first48.backtest`",
         "",
         f"{len(pivot)} monthly origins, test week after each, 5 seeds for LightGBM. "
-        "lightgbm_no_edits leaves out the edit activity features.",
+        "szabo_huberman_log drops the variance correction, pinto_style uses day-0 and day-1 views separately "
+        "(Amendment 4), and lightgbm_no_edits leaves out the edit activity features.",
         "",
         "| Model | Median abs log error (mean over folds) | LightGBM better by | Folds LightGBM wins |",
         "|---|---|---|---|",
     ]
-    for model in ["flat_rate", "szabo_huberman", "log_linear", "lightgbm_no_edits", "lightgbm"]:
+    for model in [*BASELINES, "lightgbm_no_edits", "lightgbm"]:
         err = pivot[model].mean()
         if model == "lightgbm":
             lines.append(f"| {model} | {num(err)} | | |")
@@ -159,7 +162,7 @@ def holdout_section():
         "|---|---|---|---|",
     ]
     lgb = point.loc["lightgbm", "median_abs_log_error"]
-    for model in ["flat_rate", "szabo_huberman", "log_linear"]:
+    for model in BASELINES:
         err = point.loc[model, "median_abs_log_error"]
         c = vs.loc[model]
         lines.append(f"| {model} | {num(err)} | {pct(relative_gain(lgb, err))} | "

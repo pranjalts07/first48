@@ -55,6 +55,27 @@ class SzaboHuberman:
         return np.expm1(np.log1p(test["views_48h"]) + self.b + self.var / 2).to_numpy()
 
 
+class SzaboHubermanLog(SzaboHuberman):
+    """Szabo-Huberman without the lognormal correction, which targets raw-scale error."""
+
+    def predict(self, test):
+        return np.expm1(np.log1p(test["views_48h"]) + self.b).to_numpy()
+
+
+class PintoStyle:
+    """log Y on log day-0 and log day-1 views, each with its own slope."""
+
+    def design(self, df):
+        return np.column_stack([np.ones(len(df)), np.log1p(df["views_d0"]), np.log1p(df["views_d1"])])
+
+    def fit(self, train):
+        self.coef, *_ = np.linalg.lstsq(self.design(train), np.log1p(train["views_30d"]), rcond=None)
+        return self
+
+    def predict(self, test):
+        return np.expm1(self.design(test) @ self.coef)
+
+
 class LogLinear:
     """log Y on log early views with a free slope, plus creation hour effects."""
 

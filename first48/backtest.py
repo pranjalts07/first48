@@ -16,7 +16,7 @@ import mlflow
 import pandas as pd
 
 from first48.metrics import point_metrics
-from first48.models import FlatRate, GradientBoosting, LogLinear, SzaboHuberman
+from first48.models import FlatRate, GradientBoosting, LogLinear, PintoStyle, SzaboHuberman, SzaboHubermanLog
 
 LABEL_LAG = 30
 TEST_DAYS = 7
@@ -24,7 +24,13 @@ ORIGINS = [dt.date(2025 + (m - 1) // 12, (m - 1) % 12 + 1, 1) for m in range(3, 
 HOLDOUT_START = dt.date(2026, 8, 20)
 SEEDS = range(5)
 
-BASELINES = {"flat_rate": FlatRate, "szabo_huberman": SzaboHuberman, "log_linear": LogLinear}
+BASELINES = {
+    "flat_rate": FlatRate,
+    "szabo_huberman": SzaboHuberman,
+    "szabo_huberman_log": SzaboHubermanLog,
+    "pinto_style": PintoStyle,
+    "log_linear": LogLinear,
+}
 
 
 def load_articles(db):

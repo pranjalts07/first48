@@ -71,4 +71,29 @@ def test_no_edits_model_is_reported_per_seed():
 
     df = articles(dt.date(2026, 1, 1), 70)
     models = set(fold_metrics(run(df, [dt.date(2026, 3, 1)]))["model"])
-    assert models == {"flat_rate", "szabo_huberman", "log_linear", "lightgbm", "lightgbm_no_edits"}
+    assert models == {"flat_rate", "szabo_huberman", "szabo_huberman_log", "pinto_style", "log_linear",
+                      "lightgbm", "lightgbm_no_edits"}
+
+
+def test_szabo_huberman_log_drops_only_the_correction():
+    import numpy as np
+
+    from first48.models import SzaboHuberman, SzaboHubermanLog
+
+    df = articles(dt.date(2026, 1, 1), 2)
+    df["views_30d"] = df["views_30d"] * np.where(df.index % 2, 2, 1)
+    full, log = SzaboHuberman().fit(df), SzaboHubermanLog().fit(df)
+    ratio = np.log1p(full.predict(df)) - np.log1p(log.predict(df))
+    assert np.allclose(ratio, full.var / 2)
+
+
+def test_pinto_style_fits_separate_slopes():
+    import numpy as np
+
+    from first48.models import PintoStyle
+
+    df = articles(dt.date(2026, 1, 1), 1)
+    df["views_d0"] = np.arange(len(df)) % 7 + 1
+    df["views_30d"] = np.expm1(1 + 0.5 * np.log1p(df["views_d0"]) + 2 * np.log1p(df["views_d1"]))
+    coef = PintoStyle().fit(df).coef
+    assert np.allclose(coef, [1, 0.5, 2])
