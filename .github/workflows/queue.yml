@@ -3,10 +3,12 @@ name: queue
 on:
   schedule:
     - cron: "*/20 * * * *"
-  workflow_run:
-    workflows: [backfill, content, edits]
-    types: [completed]
   workflow_dispatch:
+    inputs:
+      after:
+        description: Run id of the collection run that asked for this one
+        required: false
+        default: ""
 
 permissions:
   actions: write
@@ -23,6 +25,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
+      AFTER: ${{ inputs.after }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7

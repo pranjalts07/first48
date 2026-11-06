@@ -1,5 +1,7 @@
 import datetime as dt
+import json
 
+from first48 import queue_runs
 from first48.queue_runs import DAYS_2026, days, next_runs
 
 ALL_2026 = set(days(*DAYS_2026))
@@ -33,3 +35,10 @@ def test_edits_wait_for_a_complete_month():
 def test_nothing_left_means_no_runs():
     months = {f"2025-{m:02d}" for m in range(1, 13)} | {f"2026-{m:02d}" for m in range(1, 10)}
     assert next_runs(ALL_2026, ALL_2026, months, ALL_2026, months) == []
+
+
+def test_the_run_asking_for_the_queue_does_not_count_as_busy(monkeypatch):
+    runs = [{"status": "in_progress", "databaseId": 7}, {"status": "completed", "databaseId": 6}]
+    monkeypatch.setattr(queue_runs, "gh", lambda *args: json.dumps(runs))
+    assert queue_runs.busy("edits.yml")
+    assert not queue_runs.busy("edits.yml", "7")

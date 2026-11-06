@@ -11,6 +11,7 @@ on:
         required: true
 
 permissions:
+  actions: write
   contents: write
 
 concurrency:
@@ -50,3 +51,8 @@ jobs:
           if [ -s written.txt ]; then
             xargs gh release upload content --clobber < written.txt
           fi
+
+      # Runs started with the workflow token do not fire workflow_run, so ask for the next one here.
+      - name: Queue the next run
+        if: success()
+        run: gh workflow run queue.yml -f after=${{ github.run_id }}

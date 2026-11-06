@@ -15,6 +15,7 @@ on:
         default: "false"
 
 permissions:
+  actions: write
   contents: write
 
 # Shares the group with the daily run so the two never hit the API at once.
@@ -68,3 +69,8 @@ jobs:
               --notes "Past cohorts, one compressed file per month. Page state is as of collection time, not day 1."
           tar czf backfill_$MONTH.tar.gz -C data/backfill $(cd data/backfill && ls *_$MONTH-*.jsonl)
           gh release upload $RELEASE backfill_$MONTH.tar.gz --clobber
+
+      # Runs started with the workflow token do not fire workflow_run, so ask for the next one here.
+      - name: Queue the next run
+        if: success()
+        run: gh workflow run queue.yml -f after=${{ github.run_id }}

@@ -1,8 +1,8 @@
 """Start the next backfill, content and edits runs until every cohort is collected.
 
-Run on a schedule by .github/workflows/queue.yml. Each call looks at the
-release assets, and for each workflow that is idle starts the first piece of
-work that is still missing:
+Run by .github/workflows/queue.yml on a schedule and at the end of each
+collection run. Each call looks at the release assets, and for each workflow
+that is idle starts the first piece of work that is still missing:
 
 - backfill: 2026 days in runs of at most 40 days, then each 2025 month as one bundle.
 - content: 2026 days with a snapshot and views, at most 30 days per run.
@@ -13,6 +13,7 @@ work that is still missing:
 import calendar
 import datetime as dt
 import json
+import os
 import subprocess
 
 DAYS_2026 = (dt.date(2026, 1, 1), dt.date(2026, 9, 30))
@@ -57,9 +58,10 @@ def first_gap(wanted, have, max_days):
     return start, end
 
 
-def busy(workflow):
-    runs = json.loads(gh("run", "list", "--workflow", workflow, "--limit", "5", "--json", "status"))
-    return any(r["status"] != "completed" for r in runs)
+def busy(workflow, finishing=""):
+    """True if a run is queued or running, not counting the run that is about to finish."""
+    runs = json.loads(gh("run", "list", "--workflow", workflow, "--limit", "5", "--json", "status,databaseId"))
+    return any(r["status"] != "completed" and str(r["databaseId"]) != finishing for r in runs)
 
 
 def next_runs(views, snaps, bundles, content, edits):
@@ -95,7 +97,7 @@ def main():
           f"edits months {len(edits)}/21")
 
     for workflow, inputs in next_runs(views, snaps, bundles, content, edits):
-        if busy(workflow):
+        if busy(workflow, os.environ.get("AFTER", "")):
             continue
         fields = [arg for k, v in inputs.items() for arg in ("-f", f"{k}={v}")]
         gh("workflow", "run", workflow, *fields)

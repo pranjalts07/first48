@@ -8,6 +8,7 @@ on:
         required: true
 
 permissions:
+  actions: write
   contents: write
 
 concurrency:
@@ -51,3 +52,8 @@ jobs:
               --notes "Edit activity of each backfilled article from creation to the end of day 1, one file per month."
           tar czf edits_$MONTH.tar.gz -C data/edits $(cd data/edits && ls edits_$MONTH-*.jsonl)
           gh release upload edits edits_$MONTH.tar.gz --clobber
+
+      # Runs started with the workflow token do not fire workflow_run, so ask for the next one here.
+      - name: Queue the next run
+        if: success()
+        run: gh workflow run queue.yml -f after=${{ github.run_id }}
