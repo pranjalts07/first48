@@ -178,10 +178,81 @@ def holdout_section():
         *[f"| {r.views_d1} | {pct(r.cqr_coverage)} |" for r in bins.itertuples()],
     ]
     by_type = pd.read_csv(h / "point_by_type.csv")
-    lines += ["", "| Article type | Articles | LightGBM | Flat rate | Szabo-Huberman |", "|---|---|---|---|---|"]
-    lines += [f"| {r.article_type} | {r.n:,} | {num(r.lightgbm)} | {num(r.flat_rate)} | {num(r.szabo_huberman)} |"
+    lines += ["", "| Article type | Articles | LightGBM | Flat rate | Szabo-Huberman (no correction) |",
+              "|---|---|---|---|---|"]
+    lines += [f"| {r.article_type} | {r.n:,} | {num(r.lightgbm)} | {num(r.flat_rate)} | {num(r.szabo_huberman_log)} |"
               for r in by_type.itertuples()]
     return lines
+
+
+def yoy_section():
+    df = pd.read_csv(R / "yoy.csv")
+    lines = [
+        "## Trained on 2025 only, scored on 2026",
+        "`python -m first48.yoy`",
+        "",
+        "Median abs log error by 2026 month, LightGBM averaged over seeds.",
+        "",
+        "| Month | Articles | Trained on 2025 only | Retrained monthly | Flat rate |",
+        "|---|---|---|---|---|",
+    ]
+    lines += [f"| {r.month} | {r.articles:,} | {num(r.trained_on_2025)} | {num(r.retrained_monthly)} | {num(r.flat_rate)} |"
+              for r in df.itertuples()]
+    gap = (df["trained_on_2025"] - df["retrained_monthly"]).mean()
+    lines += ["", f"Mean cost of not retraining: {num(gap)}."]
+    return lines
+
+
+def dyk_section():
+    df = pd.read_csv(R / "dyk_errors.csv")
+    pivot = df.pivot(index="model", columns="featured", values="median_abs_log_error")
+    n = df.groupby("featured")["n"].first()
+    lines = [
+        "## Articles featured on the Main Page (error analysis only)",
+        "`python -m first48.dyk errors`",
+        "",
+        "Backtest articles whose Did you know set started on day 2 to 29 after creation, "
+        "which no model can see at day 2.",
+        "",
+        f"| Model | Featured ({int(n[True]):,}) | Not featured ({int(n[False]):,}) |",
+        "|---|---|---|",
+    ]
+    lines += [f"| {m} | {num(pivot.loc[m, True])} | {num(pivot.loc[m, False])} |"
+              for m in [*BASELINES, "lightgbm_no_edits", "lightgbm"]]
+    return lines
+
+
+def power_section():
+    df = pd.read_csv(R / "experiment_power.csv")
+    lines = [
+        "## Sample size for the proposed experiment",
+        "`python -m first48.power`",
+        "",
+        "Smallest detectable effect of promoting flagged articles (two-sided test, 5% level, 80% power), "
+        "with and without adjusting for the forecast.",
+        "",
+        "| Weeks | Flagged per arm | Detectable, log scale | Adjusted | Adjusted, % change in views |",
+        "|---|---|---|---|---|",
+    ]
+    lines += [f"| {r.weeks} | {r.flagged_per_arm:,} | {num(r.mde_log)} | {num(r.mde_log_adjusted)} | "
+              f"{r.mde_pct_adjusted:.1f}% |" for r in df.itertuples()]
+    return lines
+
+
+def holdout_content_section():
+    added = pd.read_csv(R / "holdout" / "content_added_value.csv").iloc[0]
+    df = pd.read_csv(R / "holdout" / "content.csv").set_index("model")
+    return [
+        "## Content only vs early views on the final holdout",
+        "`python -m first48.holdout`",
+        "",
+        "| Model | Median abs log error |",
+        "|---|---|",
+        *[f"| {m} | {num(df.loc[m, 'median_abs_log_error'])} |" for m in ["content_only", "early_signal", "combined"]],
+        "",
+        f"Content only minus combined: {num(added.content_minus_combined)}, "
+        f"95% CI {num(added.ci_low)} to {num(added.ci_high)}, {int(added.articles):,} articles.",
+    ]
 
 
 def main():
@@ -210,6 +281,10 @@ def main():
         (R / "holdout" / "split.json", holdout_section),
         (R / "holdout" / "flag.csv", lambda: flag_section(
             R / "holdout" / "flag.csv", "Day-2 flag on the final holdout", "`python -m first48.holdout`")),
+        (R / "holdout" / "content.csv", holdout_content_section),
+        (R / "yoy.csv", yoy_section),
+        (R / "dyk_errors.csv", dyk_section),
+        (R / "experiment_power.csv", power_section),
         (R / "timing_model.txt", lambda: [
             "## Creation timing (association only)", "`Rscript analysis/timing.R`", "",
             "Full output: results/timing_model.txt."]),
