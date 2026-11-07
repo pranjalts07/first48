@@ -22,3 +22,18 @@ def test_alerts():
     lines = alerts(monitoring, scores)
     assert len(lines) == 2
     assert lines[0].startswith("b: input drift")
+
+
+def test_saved_model_predicts_live_rows_with_edit_activity(tmp_path):
+    import datetime as dt
+
+    from first48.shadow import predict, train
+    from tests.test_backtest import articles
+
+    history = articles(dt.date(2026, 1, 1), 40).assign(edits_d0=3, edits_48h=5, editors_48h=2,
+                                                       size_d0=2000, size_d1=2500)
+    train(history, tmp_path)
+    live = history[history["cohort_date"] == history["cohort_date"].max()].drop(columns="views_30d")
+    out = predict(live, tmp_path)
+    assert len(out) == len(live)
+    assert (out["lower"] <= out["upper"]).all()

@@ -76,7 +76,7 @@ def train(articles, model_dir):
 def predict(early, model_dir, margin=None):
     if margin is None:
         margin = json.loads((model_dir / "meta.json").read_text())["margin"]
-    X = features(early)
+    X = features(early, edits=True)
     point = np.mean([lgb.Booster(model_file=str(model_dir / f"point_seed{s}.txt")).predict(X) for s in SEEDS], axis=0)
     lower = lgb.Booster(model_file=str(model_dir / "quantile_lower.txt")).predict(X) - margin
     upper = lgb.Booster(model_file=str(model_dir / "quantile_upper.txt")).predict(X) + margin
