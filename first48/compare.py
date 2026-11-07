@@ -6,6 +6,9 @@ Amendment 1):
 - early signal: the plan-v1 model
 - combined: early-signal features plus text at the end of day 1
 
+Text was fetched for 2026 cohorts only (Amendment 3), so the comparison uses
+2026 cohorts and the plan-v1 origins.
+
     python -m first48.embed
     python -m first48.compare
 """
@@ -17,9 +20,12 @@ import mlflow
 import numpy as np
 import pandas as pd
 
-from first48.backtest import HOLDOUT_START, ORIGINS, SEEDS, load_articles, split
+from first48.backtest import HOLDOUT_START, SEEDS, load_articles, split
 from first48.metrics import log_error, paired_bootstrap, point_metrics
 from first48.models import ContentGradientBoosting, GradientBoosting
+
+CONTENT_START = dt.date(2026, 1, 1)
+ORIGINS = [dt.date(2026, month, 1) for month in range(3, 9)]
 
 MODELS = {
     "content_only": lambda seed: ContentGradientBoosting("d0", with_views=False, seed=seed),
@@ -30,7 +36,7 @@ MODELS = {
 
 def with_embeddings(articles, path):
     emb = pd.read_parquet(path)
-    df = articles.merge(emb, on="page_id", how="inner")
+    df = articles[articles["cohort_date"] >= CONTENT_START].merge(emb, on="page_id", how="inner")
     dim = len(next(v for v in emb["emb_d0"] if v is not None))
     for col in ("emb_d0", "emb_d1"):
         df[col] = [v if v is not None else np.full(dim, np.nan, dtype=np.float32) for v in df[col]]
