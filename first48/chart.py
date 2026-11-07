@@ -15,7 +15,7 @@ import pandas as pd
 MODELS = {
     "flat_rate": ("Flat rate", "#eb6834", "s"),
     "szabo_huberman_log": ("Szabo-Huberman", "#1baf7a", "^"),
-    "log_linear": ("Log-linear", "#eda100", "D"),
+    "pinto_style": ("Pinto-style", "#eda100", "D"),
     "lightgbm": ("LightGBM", "#2a78d6", "o"),
 }
 INK = "#2b2b29"
@@ -51,7 +51,7 @@ def plot(pivot, out):
     for model, y in label_positions(ends, gap=ax.get_ylim()[1] * 0.05).items():
         ax.annotate(f"{MODELS[model][0]} {ends[model]:.2f}", (x[-1], y), xytext=(8, 0),
                     textcoords="offset points", va="center", fontsize=9, color=INK)
-    ax.set_xticks(x)
+    ax.set_xticks(x[::3])
     ax.set_ylabel("Median |log error|, lower is better", color=MUTED)
     ax.set_title("Forecast error for each monthly backtest origin", loc="left", color=INK)
     ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%b %Y"))

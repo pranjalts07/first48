@@ -25,6 +25,39 @@ def num(x, digits=3):
     return f"{x:.{digits}f}"
 
 
+def criteria_section():
+    """The success criteria in PLAN.md, checked against the final holdout."""
+    h = R / "holdout"
+    folds = pd.read_csv(R / "backtest_point_folds.csv")
+    pivot = folds.groupby(["origin", "model"])["median_abs_log_error"].mean().unstack()
+    vs = pd.read_csv(h / "point_vs_baselines.csv")
+    coverage = pd.read_csv(h / "intervals.csv")["coverage"].mean()
+    flag = pd.read_csv(h / "flag.csv").iloc[0]
+
+    wins = {b: int((pivot["lightgbm"] < pivot[b]).sum()) for b in BASELINES}
+    point_met = all(w > len(pivot) / 2 for w in wins.values()) and (vs["ci_low"] > 0).all()
+    interval_met = 0.77 <= coverage <= 0.83
+    flag_met = flag.model_precision_at_baseline_recall > flag.baseline_precision
+
+    low, high = min(wins.values()), max(wins.values())
+    won = f"{low}" if low == high else f"{low} to {high}"
+
+    def verdict(met):
+        return "met" if met else "missed"
+
+    return [
+        "## Success criteria (PLAN.md)",
+        "",
+        "| Criterion | Result | Verdict |",
+        "|---|---|---|",
+        f"| Point: LightGBM beats every baseline in most backtest folds, and the holdout 95% CI "
+        f"of the difference excludes zero | wins {won} of {len(pivot)} folds against each baseline; smallest holdout CI lower bound {num(vs['ci_low'].min())} | {verdict(point_met)} |",
+        f"| Intervals: 80% ranges cover 77% to 83% of holdout articles | {pct(coverage)} | {verdict(interval_met)} |",
+        f"| Flag: higher precision than the day-1 ranking at equal recall | "
+        f"{pct(flag.model_precision_at_baseline_recall)} vs {pct(flag.baseline_precision)} | {verdict(flag_met)} |",
+    ]
+
+
 def data_section(db):
     con = duckdb.connect(str(db), read_only=True)
     articles, first, last = con.execute(
@@ -267,8 +300,10 @@ def main():
          "Each section names the command that recomputes its numbers. "
          "Errors are |log(1 + forecast) - log(1 + actual)|; a median of 0.4 means the typical forecast "
          "is off by a factor of about 1.5."],
-        data_section(args.db),
     ]
+    if (R / "holdout" / "flag.csv").exists():
+        sections.append(criteria_section())
+    sections.append(data_section(args.db))
     optional = [
         (R / "correlation.csv", correlation_section),
         (R / "backtest_point_folds.csv", backtest_section),

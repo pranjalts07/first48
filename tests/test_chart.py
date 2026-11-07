@@ -6,7 +6,7 @@ from first48.chart import error_by_fold, label_positions, plot
 def folds():
     rows = []
     for origin in ["2026-03-01", "2026-04-01"]:
-        for model, err in [("flat_rate", 0.9), ("szabo_huberman_log", 0.7), ("log_linear", 0.6)]:
+        for model, err in [("flat_rate", 0.9), ("szabo_huberman_log", 0.7), ("pinto_style", 0.6)]:
             rows.append({"origin": origin, "model": model, "seed": None, "median_abs_log_error": err})
         for seed, err in enumerate([0.4, 0.5]):
             rows.append({"origin": origin, "model": "lightgbm", "seed": seed, "median_abs_log_error": err})

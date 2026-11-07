@@ -29,3 +29,20 @@ def test_power_section(tmp_path, monkeypatch):
     pd.DataFrame({"weeks": [2], "flagged_per_arm": [192], "mde_log": [0.43], "mde_log_adjusted": [0.276],
                   "mde_pct_adjusted": [31.77]}).to_csv(tmp_path / "experiment_power.csv", index=False)
     assert results.power_section()[-1] == "| 2 | 192 | 0.430 | 0.276 | 31.8% |"
+
+
+def test_criteria_section_reports_a_missed_interval_target(tmp_path, monkeypatch):
+    monkeypatch.setattr(results, "R", tmp_path)
+    (tmp_path / "holdout").mkdir()
+    rows = [{"origin": o, "model": m, "median_abs_log_error": 0.4 if m == "lightgbm" else 0.6}
+            for o in ["2026-03-01", "2026-04-01"] for m in [*BASELINES, "lightgbm"]]
+    pd.DataFrame(rows).to_csv(tmp_path / "backtest_point_folds.csv", index=False)
+    pd.DataFrame({"baseline": list(BASELINES), "ci_low": 0.1}).to_csv(tmp_path / "holdout" / "point_vs_baselines.csv")
+    pd.DataFrame({"coverage": [0.84, 0.85]}).to_csv(tmp_path / "holdout" / "intervals.csv")
+    pd.DataFrame({"model_precision_at_baseline_recall": [0.7], "baseline_precision": [0.6]}).to_csv(
+        tmp_path / "holdout" / "flag.csv")
+    lines = results.criteria_section()
+    assert lines[4].endswith("| met |")
+    assert "wins 2 of 2 folds" in lines[4]
+    assert lines[5] == "| Intervals: 80% ranges cover 77% to 83% of holdout articles | 84.5% | missed |"
+    assert lines[6].endswith("| met |")
