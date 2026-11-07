@@ -1,0 +1,71 @@
+Articles: 330187 
+Cohorts: 2025-01-01 to 2026-08-19 
+
+                Estimate Std. Error
+(Intercept)       1.3909    0.17191
+log_early         1.0247    0.00135
+creation_hour1    0.0149    0.01350
+creation_hour2    0.0298    0.01357
+creation_hour3    0.0512    0.01386
+creation_hour4    0.0588    0.01404
+creation_hour5    0.0400    0.01415
+creation_hour6    0.0455    0.01414
+creation_hour7    0.0425    0.01397
+creation_hour8    0.0202    0.01357
+creation_hour9   -0.0145    0.01332
+creation_hour10  -0.0149    0.01318
+creation_hour11  -0.0174    0.01301
+creation_hour12   0.0108    0.01279
+creation_hour13   0.0339    0.01249
+creation_hour14   0.0522    0.01233
+creation_hour15   0.0935    0.01232
+creation_hour16   0.1206    0.01241
+creation_hour17   0.1307    0.01236
+creation_hour18   0.1599    0.01238
+creation_hour19   0.2002    0.01241
+creation_hour20   0.2167    0.01241
+creation_hour21   0.2226    0.01245
+creation_hour22   0.2291    0.01271
+creation_hour23   0.2615    0.01303
+weekdayTue        0.0214    0.00672
+weekdayWed        0.0201    0.00673
+weekdayThu        0.0286    0.00679
+weekdayFri        0.0487    0.00676
+weekdaySat        0.0470    0.00684
+weekdaySun        0.0281    0.00679
+
+Random effect (article type):
+ Groups       Name        Std.Dev.
+ article_type (Intercept) 0.42014 
+ Residual                 1.04628 
+
+Likelihood ratio test, creation hour:
+Data: articles
+Models:
+no_hour: log_y ~ log_early + weekday + (1 | article_type)
+full: log_y ~ log_early + creation_hour + weekday + (1 | article_type)
+        npar    AIC    BIC  logLik -2*log(L) Chisq Df Pr(>Chisq)    
+no_hour   10 969267 969374 -484624    969247                        
+full      33 967024 967377 -483479    966958  2289 23  < 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Likelihood ratio test, weekday:
+Data: articles
+Models:
+no_weekday: log_y ~ log_early + creation_hour + (1 | article_type)
+full: log_y ~ log_early + creation_hour + weekday + (1 | article_type)
+           npar    AIC    BIC  logLik -2*log(L) Chisq Df Pr(>Chisq)    
+no_weekday   27 967085 967374 -483515    967031                        
+full         33 967024 967377 -483479    966958 72.61  6   1.19e-13 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Wald 95% intervals, weekday effects (log scale, vs Monday):
+           2.5 % 97.5 %
+weekdayTue 0.008  0.035
+weekdayWed 0.007  0.033
+weekdayThu 0.015  0.042
+weekdayFri 0.035  0.062
+weekdaySat 0.034  0.060
+weekdaySun 0.015  0.041

@@ -1,0 +1,6 @@
+{
+  "train_cohorts": "2025-01-01 to 2026-07-21",
+  "train_articles": 313062,
+  "holdout_cohorts": "2026-08-20 to 2026-09-30",
+  "holdout_articles": 23199
+}

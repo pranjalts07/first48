@@ -1,0 +1,15 @@
+model,featured,n,median_abs_log_error
+flat_rate,False,69787.0,0.9891280558264217
+flat_rate,True,257.0,2.599280477289268
+lightgbm,False,69787.0,0.39920411969769953
+lightgbm,True,257.0,3.632021529853372
+lightgbm_no_edits,False,69787.0,0.4299081796880648
+lightgbm_no_edits,True,257.0,3.669893117785616
+log_linear,False,69787.0,0.6337395435492987
+log_linear,True,257.0,3.492664886022437
+pinto_style,False,69787.0,0.562099060889329
+pinto_style,True,257.0,3.5274095752304984
+szabo_huberman,False,69787.0,0.9944160151218053
+szabo_huberman,True,257.0,2.976845691144759
+szabo_huberman_log,False,69787.0,0.645631285646842
+szabo_huberman_log,True,257.0,3.5821480021217074

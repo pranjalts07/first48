@@ -1,0 +1,2 @@
+origin,n,top,baseline_precision,baseline_recall,baseline_pr_auc,model_precision,model_recall,model_pr_auc,model_precision_at_baseline_recall
+2026-08-20,23199,1157,0.6219298245614036,0.6127917026793431,0.6634923950782816,0.6508771929824562,0.641313742437338,0.7116169378163288,0.7022749752720079
