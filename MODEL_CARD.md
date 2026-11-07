@@ -15,7 +15,11 @@ Views on day 0 and day 1, hours of day 0 after creation, weekday, whether the pa
 New articles created from 2025-01-01 to 2026-09-30, collected after the fact from the Wikimedia pageviews API and the MediaWiki logs. Live cohorts from 2026-10-31 on are collected daily and used for shadow mode only.
 
 ## Evaluation
-Rolling-origin backtests and a final holdout of the last 6 weeks, scored once. All numbers, with the command behind each, are in RESULTS.md.
+Rolling-origin backtests and a final holdout of the last 6 weeks, scored once. All numbers, with the command behind each, are in RESULTS.md. On the holdout (23,199 articles, August 20 to September 30, 2026):
+- Median absolute log error 0.392, a typical miss of a factor of 1.48. The best baseline, a Pinto-style model, scored 0.541.
+- 80% ranges covered 83.6% overall, but only 75.5% of articles with 100 or more day-1 views.
+- At the recall of ranking by day-1 views, 70.2% of flagged articles were in the top 5%, against 62.2% for that ranking.
+- Error is highest for sports events (0.563) and film or TV (0.527), and lowest for places (0.290).
 
 ## Intended use
 Planning and ranking: deciding which new articles deserve early attention, such as review, caching or promotion. Forecasts are for groups of articles and for ranking, not exact counts for a single article.
@@ -30,9 +34,11 @@ Planning and ranking: deciding which new articles deserve early attention, such 
 - Bot traffic that the pageviews API does not label as automated is counted as human.
 - Scheduled runs can start hours late, so "end of day 1" state is really a few hours after.
 - Only one November and December (2025) is in the data, so holiday behavior rests on a single year.
+- Ranges are too narrow for the busiest articles: treat the upper end of the range as soft for articles with 100 or more day-1 views.
+- A Main Page feature after day 1 cannot be foreseen. The few articles featured that way (257 in the backtests) are missed by a factor of about 38 at the median.
 
 ## Monitoring
 The daily job compares each new cohort's day-1 views and forecasts with the training distribution (population stability index) and, once outcomes arrive, checks how often the 80% range held. An alert on the newest cohort opens a GitHub issue: PSI above 0.25, or coverage outside 70% to 90%.
 
 ## Retraining
-Retrain monthly on every cohort whose 30-day views are complete, and also after an alert that isn't explained by a data problem. A retrained model replaces the current one only if it is at least as good on the latest month of cohorts, scored the same way as the backtests.
+Retrain monthly on every cohort whose 30-day views are complete, and also after an alert that isn't explained by a data problem. A retrained model replaces the current one only if it is at least as good on the latest month of cohorts, scored the same way as the backtests. Monthly is a cautious choice: a model trained only on 2025 lost just 0.006 in median log error on 2026 articles against monthly retraining.

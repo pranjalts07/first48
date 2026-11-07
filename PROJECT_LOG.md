@@ -136,3 +136,15 @@ Data review and Amendment 3
 
 Next step
 - Finish the backfill, text and edits runs, train the shadow-mode model, then run every backtest on the full data.
+
+## 2026-11-07: results
+
+- Collection finished: 353,386 articles from 2025-01-01 to 2026-09-30, all with edit activity, all data tests passing.
+- Each collection run now starts the queue itself; runs started by the workflow token never fired the workflow_run trigger, so the queue had only woken on the schedule, every few hours.
+- The content comparison had picked up the 2025 origins and a few hundred 2025 page ids that also have 2026 text. Fixed to 2026 cohorts and the plan-v1 origins, as Amendment 3 says. Found before the holdout wrote anything; the holdout was then scored once.
+- Holdout: point and flag criteria met. Interval coverage 83.6% against the planned 77% to 83%, reported as missed; the ranges are too wide for small articles and too narrow for the busiest ones.
+- The local data folder moved out of the synced Desktop to `~/first48-data`, with `data` as a link, after file sync created duplicate copies of raw files. The warehouse tests would have caught the duplicates.
+
+Next step
+- Score the live shadow-mode cohorts once their 30 days are complete (first ones around December 1).
+- Day-4 and day-8 updated forecasts (Amendment 3).
