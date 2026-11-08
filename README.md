@@ -88,6 +88,7 @@ Not automatically. Wikipedia has no personalized feed deciding what readers see,
 - `DESIGN_DOC.md`: users, decisions, guardrails and launch criteria
 - `MODEL_CARD.md`: what the model is for, its limits, monitoring and retraining
 - `EXPERIMENT.md`: proposed experiment for acting on the flag
+- `READOUT.md`: one-page findings and recommendation for a non-technical reader
 - `RESULTS.md` (generated): every reported number with its command
 - `PROJECT_LOG.md`: progress and decisions
 - `first48/`: collection, warehouse, models and evaluation; `sql/`: warehouse models and data tests; `analysis/`: R timing model
