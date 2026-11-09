@@ -93,3 +93,7 @@ Not automatically. Wikipedia has no personalized feed deciding what readers see,
 - `RESULTS.md` (generated): every reported number with its command
 - `PROJECT_LOG.md`: progress and decisions
 - `first48/`: collection, warehouse, models and evaluation; `sql/`: warehouse models and data tests; `analysis/`: R timing model
+
+## License
+
+The code is under the MIT License (see `LICENSE`). The license does not cover the data: the Wikipedia article text in the `content` release is licensed by its authors under CC BY-SA 4.0.
