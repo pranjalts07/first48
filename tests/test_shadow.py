@@ -37,3 +37,12 @@ def test_saved_model_predicts_live_rows_with_edit_activity(tmp_path):
     out = predict(live, tmp_path)
     assert len(out) == len(live)
     assert (out["lower"] <= out["upper"]).all()
+
+
+def test_shadow_runs_without_mlflow():
+    # The daily job installs only the model requirements, which leave out MLflow.
+    import subprocess
+    import sys
+
+    code = "import sys; sys.modules['mlflow'] = None; import first48.shadow"
+    assert subprocess.run([sys.executable, "-c", code]).returncode == 0

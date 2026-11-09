@@ -11,7 +11,6 @@ import argparse
 import datetime as dt
 from pathlib import Path
 
-import mlflow
 import numpy as np
 import pandas as pd
 
@@ -118,6 +117,8 @@ def main():
     by_bin.to_csv(args.out / "backtest_interval_coverage_by_d1.csv")
 
     if not args.no_mlflow:
+        import mlflow
+
         mlflow.set_experiment("interval-backtest")
         with mlflow.start_run(run_name="lightgbm_cqr"):
             mlflow.log_params({"level": LEVEL, "cal_days": CAL_DAYS, "seeds": len(SEEDS),

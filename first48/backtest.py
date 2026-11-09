@@ -12,7 +12,6 @@ import datetime as dt
 from pathlib import Path
 
 import duckdb
-import mlflow
 import pandas as pd
 
 from first48.metrics import point_metrics
@@ -103,6 +102,8 @@ def summarize(metrics):
 
 
 def log_to_mlflow(metrics, origins):
+    import mlflow
+
     mlflow.set_experiment("point-backtest")
     by_fold = metrics.groupby(["origin", "model"], as_index=False).mean(numeric_only=True)
     for model, rows in by_fold.groupby("model"):
