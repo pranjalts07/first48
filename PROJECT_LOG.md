@@ -148,3 +148,8 @@ Next step
 Next step
 - Score the live shadow-mode cohorts once their 30 days are complete (first ones around December 1).
 - Day-4 and day-8 updated forecasts (Amendment 3).
+
+## 2026-11-09: later forecasts and the daily job
+
+- Forecasts at the end of day 3 and day 7 (Amendment 3) are in RESULTS.md: median log error 0.278 and 0.183, against 0.402 at the end of day 1, better in all 18 backtest months. The holdout was not used.
+- The daily shadow step failed on Nov 8 and 9 because it imported MLflow, which the job does not install. MLflow now loads only when logging, with a test that blocks it.

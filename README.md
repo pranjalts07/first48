@@ -45,6 +45,7 @@ python -m first48.backtest         # rolling backtests
 python -m first48.intervals        # 80% ranges
 python -m first48.flag             # day-2 flag
 python -m first48.compare          # content only vs early views
+python -m first48.horizons         # forecasts at day 4 and day 8
 python -m first48.dyk fetch 2025-01 2026-10   # Main Page "Did you know" features
 python -m first48.dyk errors       # error for featured vs other articles
 Rscript analysis/timing.R          # creation timing model
@@ -59,7 +60,7 @@ Raw data is attached to the `backfill`, `backfill-2025`, `data`, `content`, `edi
 ## FAQ
 
 **Why only the first two days?**
-That is when decisions about new content get made. Waiting a week gives a better forecast but too late to act on.
+That is when decisions about new content get made. Waiting does help: in the backtests the typical miss shrinks from a factor of 1.49 at the end of day 1 to 1.32 at the end of day 3 and 1.20 at the end of day 7, better in all 18 months each time. Part of that gain is simply that those days are already counted in the 30-day total. The trade-off is timing: the median article has already had 28% of its 30-day views by the end of day 1, 39% by the end of day 3 and 52% by the end of day 7.
 
 **Why measure error on the log scale?**
 Views are extremely skewed: a few articles get millions, most get hundreds. A log error of 0.4 means the forecast is typically off by a factor of about 1.5, whether the article gets 50 views or 50,000. Errors in raw views would be dominated by a handful of huge articles.

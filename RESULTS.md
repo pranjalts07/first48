@@ -133,6 +133,17 @@ Forecast precision at the current-practice recall: 70.2%.
 
 Content only minus combined: 0.245, 95% CI 0.235 to 0.256, 23,199 articles.
 
+## Waiting longer before forecasting (Amendment 3)
+`python -m first48.horizons`
+
+Same models and backtest origins, given views up to the end of day 1, 3 or 7. The target is still views on days 0 to 29. Median abs log error, mean over folds.
+
+| Forecast at end of | 30-day views already seen (median) | Pinto-style | LightGBM | Folds better than the previous forecast |
+|---|---|---|---|---|
+| day 1 | 28.3% | 0.565 | 0.402 |  |
+| day 3 | 38.6% | 0.374 | 0.278 | 18 of 18 |
+| day 7 | 52.0% | 0.275 | 0.183 | 18 of 18 |
+
 ## Trained on 2025 only, scored on 2026
 `python -m first48.yoy`
 

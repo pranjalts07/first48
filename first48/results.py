@@ -218,6 +218,30 @@ def holdout_section():
     return lines
 
 
+def horizons_section():
+    df = pd.read_csv(R / "horizons.csv")
+    pivot = df.pivot(index="origin", columns="forecast_day", values="lightgbm")
+    means = df.groupby("forecast_day")[["pinto_style", "lightgbm"]].mean()
+    seen = pd.read_csv(R / "horizons_share.csv").set_index("forecast_day")["median_share_seen"]
+    lines = [
+        "## Waiting longer before forecasting (Amendment 3)",
+        "`python -m first48.horizons`",
+        "",
+        "Same models and backtest origins, given views up to the end of day 1, 3 or 7. "
+        "The target is still views on days 0 to 29. Median abs log error, mean over folds.",
+        "",
+        "| Forecast at end of | 30-day views already seen (median) | Pinto-style | LightGBM | "
+        "Folds better than the previous forecast |",
+        "|---|---|---|---|---|",
+    ]
+    previous = None
+    for day, r in means.iterrows():
+        better = "" if previous is None else f"{int((pivot[day] < pivot[previous]).sum())} of {len(pivot)}"
+        lines.append(f"| day {day - 1} | {pct(seen[day])} | {num(r.pinto_style)} | {num(r.lightgbm)} | {better} |")
+        previous = day
+    return lines
+
+
 def yoy_section():
     df = pd.read_csv(R / "yoy.csv")
     lines = [
@@ -317,6 +341,7 @@ def main():
         (R / "holdout" / "flag.csv", lambda: flag_section(
             R / "holdout" / "flag.csv", "Day-2 flag on the final holdout", "`python -m first48.holdout`")),
         (R / "holdout" / "content.csv", holdout_content_section),
+        (R / "horizons.csv", horizons_section),
         (R / "yoy.csv", yoy_section),
         (R / "dyk_errors.csv", dyk_section),
         (R / "experiment_power.csv", power_section),
