@@ -6,7 +6,7 @@ Predicts how many people will read a brand-new Wikipedia article in its first mo
 
 Scored once on a final holdout of 23,199 articles created from August 20 to September 30, 2026, after training on 313,062 earlier articles:
 
-- **Forecasts are typically off by a factor of 1.48**, against 1.72 for the best published method (a Pinto-style model) and 2.75 for extending day-1 views. That is 27.5% lower error than the best baseline, 95% CI for the difference 0.141 to 0.156 on the log scale, and LightGBM won all 18 monthly backtests against every baseline.
+- **Forecasts are typically off by a factor of 1.48**, against 1.72 for the strongest baseline (a log-scale adaptation of the Pinto et al. model) and 2.75 for extending day-1 views. That is 27.5% lower error than the best baseline, 95% CI for the difference 0.141 to 0.156 on the log scale, and LightGBM won all 18 monthly backtests against every baseline.
 - **The day-2 flag is right more often than ranking by day-1 views.** At the same recall, 70.2% of flagged articles end up in the month's top 5%, against 62.2%.
 - **The 80% ranges are slightly too wide overall and too narrow for the busiest articles.** They covered 83.6% of articles, just above the planned 77% to 83%, and 75.5% of articles with 100 or more day-1 views. This criterion is reported as missed.
 - **Early views matter more than the text.** A model that only reads the article at creation is off by a factor of 1.84; adding the first two days of views brings it to 1.44.

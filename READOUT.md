@@ -3,12 +3,12 @@
 For: a content or product lead deciding whether to use the forecast. Every number below is in RESULTS.md with the command that produced it.
 
 ## Bottom line
-Two days after an article goes up, the model predicts its first-month readership better than every published method tried, and its top-5% list is right more often than today's practice of ranking by yesterday's views. I recommend using the list as a suggestion for early attention decisions while it finishes its shadow run. It is not ready to drive decisions on its own: two launch criteria are not met yet.
+Two days after an article goes up, the model predicts its first-month readership better than every baseline drawn from published research, and its top-5% list is right more often than today's practice of ranking by yesterday's views. I recommend using the list as a suggestion for early attention decisions while it finishes its shadow run. It is not ready to drive decisions on its own: two launch criteria are not met yet.
 
 ## What we found
 Tested once on 23,199 articles created from August 20 to September 30, 2026, which the model never saw during development:
 
-- **Accurate enough to plan with.** A typical forecast is off by a factor of 1.48. The best published method is off by 1.72, and extending yesterday's views is off by 2.75. Summed over all holdout articles, the forecasts missed by 29.9 million views in total, against 32.7 million for the closest baseline on that measure.
+- **Accurate enough to plan with.** A typical forecast is off by a factor of 1.48. The strongest baseline, adapted from published work, is off by 1.72, and extending yesterday's views is off by 2.75. Summed over all holdout articles, the forecasts missed by 29.9 million views in total, against 32.7 million for the closest baseline on that measure.
 - **A better daily list.** Of the articles it flags as likely top 5%, 70% get there, against 62% for ranking by yesterday's views at the same coverage. On a typical day of about 550 new articles and 27 flags, that is roughly 2 more correct picks.
 - **Consistent.** It beat every baseline in all 18 monthly backtests from March 2025 to August 2026, and in every article type. It is least accurate for sports events and films or TV, and most accurate for places.
 - **Stable over time.** A version trained only on 2025 was almost as accurate on 2026 articles as one retrained every month, so monthly retraining is a safety margin, not a necessity.
