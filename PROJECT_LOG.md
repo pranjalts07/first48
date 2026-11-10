@@ -153,3 +153,9 @@ Next step
 
 - Forecasts at the end of day 3 and day 7 (Amendment 3) are in RESULTS.md: median log error 0.278 and 0.183, against 0.402 at the end of day 1, better in all 18 backtest months. The holdout was not used.
 - The daily shadow step failed on Nov 8 and 9 because it imported MLflow, which the job does not install. MLflow now loads only when logging, with a test that blocks it.
+
+## 2026-11-10: live forecasts
+
+- The Nov 10 daily run passed with the MLflow fix and wrote shadow forecasts for the Oct 31 to Nov 7 cohorts. These are the first live forecasts; their 30-day outcomes arrive from early December.
+- The daily workflow is now three jobs: collect, then forecast, then report. The report job runs even when an earlier job fails and opens an issue saying which one broke.
+- Collection is finished, so the queue workflow no longer runs on a schedule. It can still be started by hand.
