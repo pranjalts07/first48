@@ -2,6 +2,12 @@
 
 Predicts how many people will read a brand-new Wikipedia article in its first month, using only what is known in its first two days. Each forecast comes with a likely range, and articles likely to become top performers are flagged early, all tested on real public data against a published forecasting method.
 
+[![tests](https://github.com/pranjalts07/first48/actions/workflows/tests.yml/badge.svg)](https://github.com/pranjalts07/first48/actions/workflows/tests.yml)
+![python](https://img.shields.io/badge/python-3.13-1f6feb)
+![LightGBM](https://img.shields.io/badge/LightGBM-4.7-c9463d)
+![DuckDB](https://img.shields.io/badge/DuckDB-2.0-5a9e1b)
+[![License](https://img.shields.io/badge/License-MIT-c9a227)](LICENSE)
+
 ## Results at a glance
 
 Scored once on a final holdout of 23,199 articles created from August 20 to September 30, 2026, after training on 313,062 earlier articles:
