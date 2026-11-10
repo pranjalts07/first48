@@ -1,4 +1,4 @@
-# first48 <a href="https://github.com/pranjalts07/first48/stargazers"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/star-dark.svg"><img align="right" src="assets/star-light.svg" alt="Please star the repo" width="330"></picture></a>
+# first48
 
 Predicts how many people will read a brand-new Wikipedia article in its first month, using only what is known in its first two days. Each forecast comes with a likely range, and articles likely to become top performers are flagged early, all tested on real public data against a published forecasting method.
 
@@ -7,6 +7,15 @@ Predicts how many people will read a brand-new Wikipedia article in its first mo
 ![LightGBM](https://img.shields.io/badge/LightGBM-4.7-c9463d)
 ![DuckDB](https://img.shields.io/badge/DuckDB-2.0-5a9e1b)
 [![License](https://img.shields.io/badge/License-MIT-c9a227)](LICENSE)
+
+<p align="center">
+  <a href="https://github.com/pranjalts07/first48/stargazers">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="assets/star-dark.svg">
+      <img src="assets/star-light.svg" alt="Please star the repo" width="400">
+    </picture>
+  </a>
+</p>
 
 ## Results at a glance
 
