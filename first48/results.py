@@ -65,6 +65,36 @@ def data_section(db):
     rows = con.execute("select count(*) from stg_daily_views").fetchone()[0]
     pages = con.execute("select count(*) from stg_new_pages").fetchone()[0]
     live_days = con.execute("select count(distinct cohort_date) from stg_new_pages where dataset = 'live'").fetchone()[0]
+    logged, backfill, deleted, moved_out, redirects, kept = con.execute("""
+        select
+            (select count(*) from raw_new_pages where dataset = 'backfill'),
+            count(*),
+            count(*) filter (where not s."exists"),
+            count(*) filter (where s."exists" and s.namespace <> 0),
+            count(*) filter (where s."exists" and s.namespace = 0 and s.is_redirect),
+            count(*) filter (where s.is_article)
+        from stg_new_pages p join stg_snapshots s using (page_id)
+        where p.dataset = 'backfill'
+    """).fetchone()
+    days, filled = con.execute("""
+        with f as (
+            select p.cohort_date, v.views
+            from raw_views v
+            join fct_articles p
+                on p.page_id = v.page_id
+                and p.dataset = v.dataset
+                and p.cohort_date = cast(regexp_extract(v.filename, '(\\d{4}-\\d{2}-\\d{2})\\.jsonl$', 1) as date)
+            where v.filename like '%views_full_%'
+        ),
+        d as (select cohort_date, views, cast(unnest(range(30)) as integer) as i from f)
+        select count(*), count(*) filter (where views[strftime(cohort_date + i, '%Y-%m-%d')] is null) from d
+    """).fetchone()
+    other, size_d0, size_d1 = con.execute("""
+        select count(*) filter (where article_type = 'other'),
+               count(*) filter (where size_d0 is null),
+               count(*) filter (where size_d1 is null)
+        from fct_articles where dataset = 'backfill'
+    """).fetchone()
     return [
         "## Data",
         "`python -m first48.warehouse`",
@@ -73,6 +103,23 @@ def data_section(db):
         f"- Articles with complete 30-day views (backfill, cohorts {first} to {last}): {articles:,}",
         f"- Daily view rows: {rows:,}",
         f"- Live cohorts collected so far: {live_days}",
+        "",
+        "Cleaning, backfill cohorts:",
+        "",
+        "| Step | Pages |",
+        "|---|---|",
+        f"| Log entries | {logged:,} |",
+        f"| Pages after keeping each page's first entry | {backfill:,} |",
+        f"| Removed: redirects | {redirects:,} ({redirects / backfill:.1%}) |",
+        f"| Removed: deleted | {deleted:,} ({deleted / backfill:.1%}) |",
+        f"| Removed: moved out of article space | {moved_out:,} ({moved_out / backfill:.1%}) |",
+        f"| Articles | {kept:,} |",
+        "",
+        "Missing values in the modeling table:",
+        "",
+        f"- Article-days the pageviews API left out, counted as zero views: {filled:,} of {days:,} ({filled / days:.1%})",
+        f"- No matching Wikidata type, labeled \"other\": {other:,} ({other / articles:.1%})",
+        f"- Page size unknown, left missing: {size_d0:,} at the end of day 0, {size_d1:,} at the end of day 1",
     ]
 
 
