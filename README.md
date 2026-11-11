@@ -51,6 +51,34 @@ Two decisions use the forecast, once per article, at the end of its first full d
 
 The question, metrics, splits and success criteria were fixed in PLAN.md before any modeling. Changes are logged as amendments.
 
+## Data and cleaning
+
+Most pages created in article space are not articles. From January 2025 to September 2026:
+
+| Step | Pages |
+|---|---|
+| Creation and move log entries | 1,178,962 |
+| One row per page (first entry kept) | 1,167,448 |
+| Removed: redirects | 708,909 (60.7%) |
+| Removed: deleted | 95,537 (8.2%) |
+| Removed: moved back out of article space | 9,616 (0.8%) |
+| **Articles in the modeling table** | **353,386** |
+
+Missing values, each handled for its own reason:
+- **Days with no views.** The pageviews API leaves out some zero-view days, so 1,014,052 of 10.6 million article-days (9.6%) are filled with 0.
+- **Article type.** 50.2% of articles have no Wikidata type in the five groups and are labeled "other" rather than dropped.
+- **Page size.** Unknown for 2,452 articles at the end of day 0 and 1,357 at the end of day 1. Left missing, because 0 would mean an empty page; LightGBM learns which way to send them.
+- **Early views.** Never missing: a data test fails the build if any are.
+
+Other choices:
+- **Bots.** Only traffic the API labels as human (`agent=user`) is counted.
+- **Outliers.** Kept. Views run from zero to millions, so errors are measured on the log scale instead of trimming the biggest articles.
+- **Data tests.** 11 SQL tests fail the build on duplicate pages, missing days, negative views, or articles dropped between steps (`sql/tests/`).
+- **Train and test split.** By time, not at random. A random split would train on articles created after the forecast date. The final model trains on cohorts up to July 21, 2026 (313,062 articles), whose 30 days were complete when the holdout starts on August 20 (23,199 articles). The 17,125 articles in between are in neither.
+- **Known bias.** For backfilled cohorts, deleted and redirect status was checked months later, not at the end of day 1. The live collector records it at the end of day 1.
+
+Counts come from the Data section of RESULTS.md.
+
 ## Reproduce
 
 ```bash
